@@ -25,7 +25,7 @@ async function getAvailableDates() {
                 type: "Point",
                 coordinates: [coordinates[0].lng, coordinates[0].lat],
             },
-            datetime: "2025-01-01T00:00:00Z/2025-01-07T23:59:59Z",
+            datetime: "2018-01-01T00:00:00Z/2018-01-05T23:59:59Z",
         };
 
         const token = await getCopernicusAccessToken();
