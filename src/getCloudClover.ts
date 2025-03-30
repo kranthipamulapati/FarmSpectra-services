@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { ClientResponseError } from "pocketbase";
+
 import { loginToDatabase, getCopernicusAccessToken } from "./auth";
 
 import { pocketbase, type FarmSatelliteTaskExpand } from "./database";
@@ -57,14 +59,13 @@ async function callback() {
             const startDate = new Date(start_date);
 
             const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 5);
+            yesterday.setDate(yesterday.getDate() - 5); // 1 for yesterday
 
-            const diffInDaysYesterday = Math.floor(
+            const diffInDays = Math.floor(
                 (Number(yesterday) - Number(startDate)) / (1000 * 60 * 60 * 24)
             );
 
-            const isRevisitDayYesterday =
-                diffInDaysYesterday % revisit_time === 0;
+            const isRevisitDayYesterday = diffInDays % revisit_time === 0;
 
             if (isRevisitDayYesterday) {
                 const { startTime, endTime } = getUTCRange(yesterday);
@@ -72,11 +73,11 @@ async function callback() {
                 const searchParams = {
                     limit: 1,
                     collections: [collection_code],
+                    datetime: `${startTime}/${endTime}`,
                     intersects: {
                         type: "Point",
                         coordinates: [coordinates[0].lng, coordinates[0].lat],
                     },
-                    datetime: `${startTime}/${endTime}`,
                 };
 
                 const response = await axios.post(catalogApiUrl, searchParams, {
@@ -86,16 +87,43 @@ async function callback() {
                     },
                 });
 
-                const cloud_cover =
-                    response.data.features[0].properties["eo:cloud_cover"];
+                if (response.data.features.length) {
+                    let cloud_cover = Number(
+                        response.data.features[0].properties["eo:cloud_cover"]
+                    );
 
-                console.log(cloud_cover);
+                    let datetime =
+                        response.data.features[0].properties["datetime"];
+
+                    await pocketbase.collection("farm_satellite_data").create({
+                        farm_fk: farms[i].farm_fk,
+                        satellite_fk: farms[i].satellite_fk,
+                        visit_date: datetime,
+                        cloud_cover,
+                    });
+                } else {
+                    throw new Error("No features found.");
+                }
             } else {
-                console.log("No satellite visit today.");
+                throw new Error("No satellite visit today.");
             }
         }
     } catch (error) {
-        console.error("Error querying the Catalog API:", error);
+        if (error instanceof ClientResponseError) {
+            const { data, message } = error.response;
+
+            const errorMessages = Object.entries(data || {})
+                .map(
+                    ([field, err]: [string, any]) => `${field}: ${err.message}`
+                )
+                .join("\n");
+
+            console.log(`${message}\n${errorMessages}`, { type: "error" });
+        } else if (error instanceof Error) {
+            console.log(error.message, { type: "error" });
+        } else {
+            console.log("An unknown error occurred", { type: "error" });
+        }
     }
 }
 
