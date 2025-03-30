@@ -50,7 +50,7 @@ async function getAvailableDates() {
             });
 
             const availableDates = response.data.features.map(
-                (feature: any) => feature.properties.datetime.split("T")[0]
+                (feature: any) => feature.properties.datetime
             );
 
             await pocketbase
