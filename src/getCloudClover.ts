@@ -1,6 +1,7 @@
 import axios from "axios";
-
 import { ClientResponseError } from "pocketbase";
+
+import { getUTCRange } from "./utils";
 
 import { loginToDatabase, getCopernicusAccessToken } from "./auth";
 
@@ -8,34 +9,6 @@ import { pocketbase, type FarmSatelliteTaskExpand } from "./database";
 
 const catalogApiUrl =
     "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search";
-
-function getUTCRange(date) {
-    const startTime = new Date(
-        Date.UTC(
-            date.getUTCFullYear(),
-            date.getUTCMonth(),
-            date.getUTCDate(),
-            0,
-            0,
-            0,
-            0
-        )
-    ).toISOString();
-
-    const endTime = new Date(
-        Date.UTC(
-            date.getUTCFullYear(),
-            date.getUTCMonth(),
-            date.getUTCDate(),
-            23,
-            59,
-            59,
-            999
-        )
-    ).toISOString();
-
-    return { startTime, endTime };
-}
 
 // Function to query the Catalog API
 async function callback() {

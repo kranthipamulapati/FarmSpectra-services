@@ -41,7 +41,25 @@ type FarmSatelliteTask = {
     updated: Date;
 };
 
+type FarmSatelliteData = {
+    id: string;
+    farm_fk: string;
+    satellite_fk: string;
+    visit_date: Date;
+    cloud_cover: number;
+    image_url: string;
+    created: Date;
+    updated: Date;
+};
+
 type FarmSatelliteTaskExpand = FarmSatelliteTask & {
+    expand: {
+        farm_fk: Farm;
+        satellite_fk: Satellite;
+    };
+};
+
+type FarmSatelliteDataExpand = FarmSatelliteData & {
     expand: {
         farm_fk: Farm;
         satellite_fk: Satellite;
@@ -52,4 +70,10 @@ const pocketbase = new PocketBase(apiBaseURL);
 pocketbase.autoCancellation(false);
 
 export { pocketbase };
-export type { Farm, Satellite, Coordinate, FarmSatelliteTaskExpand };
+export type {
+    Farm,
+    Satellite,
+    Coordinate,
+    FarmSatelliteTaskExpand,
+    FarmSatelliteDataExpand,
+};
