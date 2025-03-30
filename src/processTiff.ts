@@ -14,10 +14,8 @@ async function processTiff(filePath: string) {
     // B011 - SWIR     20m  5
     // B012 - SWIR     20m  6
 
-    const green = rasters[1];
     const red = rasters[2];
     const NIR = rasters[4];
-    const SWIR1 = rasters[5];
 
     const ndvi = new Float32Array(red.length);
     const savi = new Float32Array(NIR.length);
@@ -52,10 +50,12 @@ async function processTiff(filePath: string) {
     // Function to calculate average ignoring NaNs
     function calculateAverage(arr: Float32Array) {
         const validValues = arr.filter((value) => !isNaN(value));
+
         const sum = validValues.reduce(
             (acc, currentValue) => acc + currentValue,
             0
         );
+
         return sum / validValues.length;
     }
 
