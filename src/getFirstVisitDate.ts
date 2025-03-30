@@ -8,7 +8,7 @@ const catalogApiUrl =
     "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search";
 
 // Function to query the Catalog API
-async function getAvailableDates() {
+async function getFirstDate() {
     try {
         await loginToDatabase();
 
@@ -16,6 +16,7 @@ async function getAvailableDates() {
             .collection("farm_satellite_tasking")
             .getFullList<FarmSatelliteTaskExpand>({
                 expand: "farm_fk, satellite_fk",
+                filter: "active = true && first_available_date = ''",
             });
 
         const token = await getCopernicusAccessToken();
@@ -65,4 +66,4 @@ async function getAvailableDates() {
 }
 
 // Call the function
-getAvailableDates();
+getFirstDate();
