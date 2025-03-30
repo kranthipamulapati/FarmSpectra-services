@@ -19,8 +19,37 @@ type Farm = {
     active: boolean;
 };
 
+type Satellite = {
+    id: string;
+    code: string;
+    name: string;
+    start_date: string;
+    collection_code: string;
+    spatial_resolution: number;
+    revisit_time: number;
+    created: Date;
+    updated: Date;
+};
+
+type FarmSatelliteTask = {
+    id: string;
+    farm_fk: string;
+    satellite_fk: string;
+    first_available_date: Date;
+    active: boolean;
+    created: Date;
+    updated: Date;
+};
+
+type FarmSatelliteTaskExpand = FarmSatelliteTask & {
+    expand: {
+        farm_fk: Farm;
+        satellite_fk: Satellite;
+    };
+};
+
 const pocketbase = new PocketBase(apiBaseURL);
 pocketbase.autoCancellation(false);
 
 export { pocketbase };
-export type { Farm, Coordinate };
+export type { Farm, Satellite, Coordinate, FarmSatelliteTaskExpand };
