@@ -2,6 +2,9 @@ import PocketBase from "pocketbase";
 
 import { apiBaseURL } from "../constants";
 
+const pocketbase = new PocketBase(apiBaseURL);
+pocketbase.autoCancellation(false);
+
 type Coordinate = {
     lat: number;
     lng: number;
@@ -86,8 +89,12 @@ type FarmSatelliteMetadataExpand = FarmSatelliteMetadata & {
     };
 };
 
-const pocketbase = new PocketBase(apiBaseURL);
-pocketbase.autoCancellation(false);
+type FarmSatelliteTiffExpand = FarmSatelliteTiff & {
+    expand: {
+        farm_fk: Farm;
+        satellite_fk: Satellite;
+    };
+};
 
 export { pocketbase };
 export type {
@@ -96,5 +103,6 @@ export type {
     Coordinate,
     FarmSatelliteMetadata,
     FarmSatelliteTaskExpand,
+    FarmSatelliteTiffExpand,
     FarmSatelliteMetadataExpand,
 };
