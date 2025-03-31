@@ -23,7 +23,7 @@ function getUTCRange(date) {
             0,
             0
         )
-    ).toUTCString();
+    ).toISOString();
 
     const endTime = new Date(
         Date.UTC(

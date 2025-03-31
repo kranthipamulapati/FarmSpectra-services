@@ -1,11 +1,15 @@
 import axios from "axios";
 import { ClientResponseError } from "pocketbase";
 
-import { getUTCRange } from "./utils";
+import { getUTCDate, getUTCRange } from "./utils";
 
 import { loginToDatabase, getCopernicusAccessToken } from "./auth";
 
-import { pocketbase, type FarmSatelliteTaskExpand } from "./database";
+import {
+    pocketbase,
+    type FarmSatelliteMetadata,
+    type FarmSatelliteTaskExpand,
+} from "./database";
 
 const catalogApiUrl =
     "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search";
@@ -15,12 +19,26 @@ async function callback() {
     try {
         await loginToDatabase();
 
-        const farms = await pocketbase
+        const taskedFarms = await pocketbase
             .collection("farm_satellite_tasking")
             .getFullList<FarmSatelliteTaskExpand>({
                 expand: "farm_fk, satellite_fk",
-                filter: "active = true && first_available_date != ''",
+                filter: `active = true && start_date <= '${getUTCDate(
+                    new Date()
+                )}' && end_date >= '${getUTCDate(new Date())}'`,
             });
+
+        const metadataFarms = await pocketbase
+            .collection("farm_satellite_metadata")
+            .getFullList<FarmSatelliteMetadata>();
+
+        const metadataFarmIds = new Set(
+            metadataFarms.map((meta) => `${meta.farm_fk}-${meta.satellite_fk}`)
+        );
+
+        const farms = taskedFarms.filter((pair) =>
+            metadataFarmIds.has(`${pair.farm_fk}-${pair.satellite_fk}`)
+        );
 
         const token = await getCopernicusAccessToken();
 
@@ -32,7 +50,7 @@ async function callback() {
             const startDate = new Date(start_date);
 
             const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 5); // 1 for yesterday
+            yesterday.setDate(yesterday.getDate() - 1); // 1 for yesterday
 
             const diffInDays = Math.floor(
                 (Number(yesterday) - Number(startDate)) / (1000 * 60 * 60 * 24)
@@ -68,7 +86,7 @@ async function callback() {
                     let datetime =
                         response.data.features[0].properties["datetime"];
 
-                    await pocketbase.collection("farm_satellite_data").create({
+                    await pocketbase.collection("farm_satellite_tiffs").create({
                         farm_fk: farms[i].farm_fk,
                         satellite_fk: farms[i].satellite_fk,
                         visit_date: datetime,
