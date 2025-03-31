@@ -35,18 +35,38 @@ type FarmSatelliteTask = {
     id: string;
     farm_fk: string;
     satellite_fk: string;
-    first_available_date: Date;
+    start_date: Date;
+    end_date: Date;
     active: boolean;
     created: Date;
     updated: Date;
 };
 
-type FarmSatelliteData = {
+type FarmSatelliteMetadata = {
+    id: string;
+    farm_fk: string;
+    satellite_fk: string;
+    first_visit_date: Date;
+    created: Date;
+    updated: Date;
+};
+
+type FarmSatelliteTiff = {
     id: string;
     farm_fk: string;
     satellite_fk: string;
     visit_date: Date;
     cloud_cover: number;
+    tiff_url: string;
+    processed: boolean;
+    created: Date;
+    updated: Date;
+};
+
+type FarmSatelliteIndexImage = {
+    id: string;
+    tiff_fk: string;
+    index_fk: string;
     image_url: string;
     created: Date;
     updated: Date;
@@ -59,7 +79,7 @@ type FarmSatelliteTaskExpand = FarmSatelliteTask & {
     };
 };
 
-type FarmSatelliteDataExpand = FarmSatelliteData & {
+type FarmSatelliteMetadataExpand = FarmSatelliteMetadata & {
     expand: {
         farm_fk: Farm;
         satellite_fk: Satellite;
@@ -74,6 +94,7 @@ export type {
     Farm,
     Satellite,
     Coordinate,
+    FarmSatelliteMetadata,
     FarmSatelliteTaskExpand,
-    FarmSatelliteDataExpand,
+    FarmSatelliteMetadataExpand,
 };
