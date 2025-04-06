@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ClientResponseError } from "pocketbase";
 
 import {
     evalscript,
@@ -20,20 +21,19 @@ const runProcess = async () => {
             .collection("farm_satellite_tiffs")
             .getFullList<FarmSatelliteTiffExpand>({
                 expand: "farm_fk, satellite_fk",
-                filter: "visit_date != ''",
+                filter: "tiff_path = ''",
             });
 
         const token = await getCopernicusAccessToken();
 
         for (let i = 0; i < farms.length; i++) {
-            let { visit_date } = farms[i];
+            let { id, farm_fk, visit_date } = farms[i];
             let { coordinates } = farms[i].expand.farm_fk;
             let { collection_code } = farms[i].expand.satellite_fk;
 
             const date = visit_date.split(" ")[0];
 
             const transformedCoordinates = convertCoordsToPolygon(coordinates);
-
             const { height, width } = getHeightAndWidthInPixels(
                 transformedCoordinates
             );
@@ -83,13 +83,33 @@ const runProcess = async () => {
                 responseType: "arraybuffer",
             });
 
-            const path = "./sentinel_image.tif";
-            await Bun.write(path, response.data);
-        }
+            const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
 
-        // console.log(`GeoTIFF image saved to ${tiffPath}`);
+            await Bun.write(path, response.data);
+
+            await pocketbase
+                .collection("farm_satellite_tiffs")
+                .update<FarmSatelliteTiffExpand>(id, {
+                    tiff_path: path,
+                    processed: true,
+                });
+        }
     } catch (error: any) {
-        console.error("Error:", error);
+        if (error instanceof ClientResponseError) {
+            const { data, message } = error.response;
+
+            const errorMessages = Object.entries(data || {})
+                .map(
+                    ([field, err]: [string, any]) => `${field}: ${err.message}`
+                )
+                .join("\n");
+
+            console.log(`${message}\n${errorMessages}`, { type: "error" });
+        } else if (error instanceof Error) {
+            console.log(error.message, { type: "error" });
+        } else {
+            console.log("An unknown error occurred", { type: "error" });
+        }
     }
 };
 

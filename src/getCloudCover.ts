@@ -43,8 +43,8 @@ async function callback() {
         const token = await getCopernicusAccessToken();
 
         for (let i = 0; i < farms.length; i++) {
-            let { coordinates } = farms[i].expand.farm_fk;
-            let { start_date, revisit_time, collection_code } =
+            const { coordinates } = farms[i].expand.farm_fk;
+            const { start_date, revisit_time, collection_code } =
                 farms[i].expand.satellite_fk;
 
             const startDate = new Date(start_date);
@@ -79,19 +79,23 @@ async function callback() {
                 });
 
                 if (response.data.features.length) {
-                    let cloud_cover = Number(
+                    const cloud_cover = Number(
                         response.data.features[0].properties["eo:cloud_cover"]
                     );
 
-                    let datetime =
+                    const datetime =
                         response.data.features[0].properties["datetime"];
 
-                    await pocketbase.collection("farm_satellite_tiffs").create({
-                        farm_fk: farms[i].farm_fk,
-                        satellite_fk: farms[i].satellite_fk,
-                        visit_date: datetime,
-                        cloud_cover,
-                    });
+                    if (datetime && cloud_cover) {
+                        await pocketbase
+                            .collection("farm_satellite_tiffs")
+                            .create({
+                                farm_fk: farms[i].farm_fk,
+                                satellite_fk: farms[i].satellite_fk,
+                                visit_date: datetime,
+                                cloud_cover,
+                            });
+                    }
                 } else {
                     throw new Error("No features found.");
                 }

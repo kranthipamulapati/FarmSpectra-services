@@ -60,7 +60,7 @@ type FarmSatelliteTiff = {
     satellite_fk: string;
     visit_date: Date;
     cloud_cover: number;
-    tiff_url: string;
+    tiff_path: string;
     processed: boolean;
     created: Date;
     updated: Date;
