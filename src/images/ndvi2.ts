@@ -1,6 +1,7 @@
+import sharp from "sharp";
 import { fromFile, type TypedArray } from "geotiff";
 
-async function createNDVIColorMap(filePath) {
+async function createNDVIColorMap(filePath, outputPath) {
     try {
         const tiff = await fromFile(filePath);
         const image = await tiff.getImage();
@@ -10,11 +11,9 @@ async function createNDVIColorMap(filePath) {
         const width = image.getWidth();
         const height = image.getHeight();
 
-        // According to your band information
-        // B04 - red at index 2
-        // B08 - NIR at index 4
-        const redBand = rasters[2] as TypedArray;
-        const nirBand = rasters[4] as TypedArray;
+        // Get red and NIR bands (B04 and B08)
+        const redBand = rasters[2] as TypedArray; // B04 at index 2
+        const nirBand = rasters[4] as TypedArray; // B08 at index 4
 
         // Create a new array to store NDVI values
         const ndviData = new Float32Array(width * height);
@@ -42,6 +41,7 @@ async function createNDVIColorMap(filePath) {
             if (ndviData[i] > maxNDVI) maxNDVI = ndviData[i];
         }
 
+        // Create an RGB buffer for the PNG image
         const rgbData = Buffer.alloc(width * height * 3);
 
         // Convert NDVI to RGB colors
@@ -94,7 +94,7 @@ async function createNDVIColorMap(filePath) {
             rgbData[i * 3 + 2] = b;
         }
 
-        console.log("Creating PNG image...");
+        // Create PNG using sharp
         await sharp(rgbData, {
             raw: {
                 width,
@@ -104,8 +104,6 @@ async function createNDVIColorMap(filePath) {
         })
             .png()
             .toFile(outputPath);
-
-        console.log(`NDVI color map successfully created at: ${outputPath}`);
 
         return {
             success: true,
@@ -121,9 +119,12 @@ async function createNDVIColorMap(filePath) {
     }
 }
 
+// Example usage
 async function main() {
-    const inputFilePath = "path/to/your/sentinel-file.tif"; // Replace with your file path
-    const outputFilePath = "path/to/output/ndvi-colormap.png"; // Replace with desired output path
+    const inputFilePath =
+        "C:/Users/kranthi/Desktop/Projects/FarmSpectra/services/images/7x624372n45gb65/2025-03-30/sentinel-2-l2a/tiff.tif";
+    const outputFilePath =
+        "C:/Users/kranthi/Desktop/Projects/FarmSpectra/services/images/7x624372n45gb65/2025-03-30/sentinel-2-l2a/ndvi.png";
 
     const result = await createNDVIColorMap(inputFilePath, outputFilePath);
 

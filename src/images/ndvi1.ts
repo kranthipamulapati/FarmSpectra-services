@@ -63,8 +63,13 @@ async function generateImages(filePath: string) {
     }
 
     ctx.putImageData(imageData, 0, 0);
-    Bun.write("./ndvi.png", canvas.toBuffer("image/png"));
+    Bun.write(
+        "C:/Users/kranthi/Desktop/Projects/FarmSpectra/services/images/7x624372n45gb65/2025-03-30/sentinel-2-l2a/ndvi.png",
+        canvas.toBuffer("image/png")
+    );
 }
 
 // Call the function with your file path
-generateImages("./sentinel_image.tif");
+generateImages(
+    "C:/Users/kranthi/Desktop/Projects/FarmSpectra/services/images/7x624372n45gb65/2025-03-30/sentinel-2-l2a/tiff.tif"
+);

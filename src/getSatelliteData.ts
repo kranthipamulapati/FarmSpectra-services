@@ -18,7 +18,7 @@ const runProcess = async () => {
         await loginToDatabase();
 
         const farms = await pocketbase
-            .collection("farm_satellite_tiffs")
+            .collection("farm_satellite_data")
             .getFullList<FarmSatelliteTiffExpand>({
                 expand: "farm_fk, satellite_fk",
                 filter: "tiff_path = ''",
@@ -88,7 +88,7 @@ const runProcess = async () => {
             await Bun.write(path, response.data);
 
             await pocketbase
-                .collection("farm_satellite_tiffs")
+                .collection("farm_satellite_data")
                 .update<FarmSatelliteTiffExpand>(id, {
                     tiff_path: path,
                     processed: true,
