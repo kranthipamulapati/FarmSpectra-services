@@ -27,7 +27,6 @@ async function generateImages(filePath: string) {
         const red = (redBand[i] - minRed) / (maxRed - minRed);
 
         const ndvi = (nir - red) / (nir + red + 1e-10); // Avoid division by zero
-        const normNDVI = (ndvi + 1) / 2; // Normalize -1 to 1 → 0 to 1
 
         let r, g, b;
         if (ndvi < -0.2) {
