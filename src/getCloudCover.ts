@@ -88,7 +88,7 @@ async function callback() {
 
                     if (datetime && cloud_cover) {
                         await pocketbase
-                            .collection("farm_satellite_tiffs")
+                            .collection("farm_satellite_data")
                             .create({
                                 farm_fk: farms[i].farm_fk,
                                 satellite_fk: farms[i].satellite_fk,

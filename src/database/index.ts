@@ -54,7 +54,7 @@ type FarmSatelliteMetadata = {
     updated: Date;
 };
 
-type FarmSatelliteTiff = {
+type FarmSatelliteData = {
     id: string;
     farm_fk: string;
     satellite_fk: string;
@@ -89,7 +89,7 @@ type FarmSatelliteMetadataExpand = FarmSatelliteMetadata & {
     };
 };
 
-type FarmSatelliteTiffExpand = FarmSatelliteTiff & {
+type FarmSatelliteDataExpand = FarmSatelliteData & {
     expand: {
         farm_fk: Farm;
         satellite_fk: Satellite;
@@ -103,6 +103,6 @@ export type {
     Coordinate,
     FarmSatelliteMetadata,
     FarmSatelliteTaskExpand,
-    FarmSatelliteTiffExpand,
+    FarmSatelliteDataExpand,
     FarmSatelliteMetadataExpand,
 };

@@ -9,7 +9,7 @@ import {
 
 import { loginToDatabase, getCopernicusAccessToken } from "./auth";
 
-import { pocketbase, type FarmSatelliteTiffExpand } from "./database";
+import { pocketbase, type FarmSatelliteDataExpand } from "./database";
 
 const url = "https://sh.dataspace.copernicus.eu/api/v1/process";
 
@@ -19,7 +19,7 @@ const runProcess = async () => {
 
         const farms = await pocketbase
             .collection("farm_satellite_data")
-            .getFullList<FarmSatelliteTiffExpand>({
+            .getFullList<FarmSatelliteDataExpand>({
                 expand: "farm_fk, satellite_fk",
                 filter: "tiff_path = ''",
             });
@@ -27,9 +27,9 @@ const runProcess = async () => {
         const token = await getCopernicusAccessToken();
 
         for (let i = 0; i < farms.length; i++) {
-            let { id, farm_fk, visit_date } = farms[i];
-            let { coordinates } = farms[i].expand.farm_fk;
-            let { collection_code } = farms[i].expand.satellite_fk;
+            const { id, farm_fk, visit_date } = farms[i];
+            const { coordinates } = farms[i].expand.farm_fk;
+            const { collection_code } = farms[i].expand.satellite_fk;
 
             const date = visit_date.split(" ")[0];
 
@@ -89,9 +89,8 @@ const runProcess = async () => {
 
             await pocketbase
                 .collection("farm_satellite_data")
-                .update<FarmSatelliteTiffExpand>(id, {
+                .update<FarmSatelliteDataExpand>(id, {
                     tiff_path: path,
-                    processed: true,
                 });
         }
     } catch (error: any) {
