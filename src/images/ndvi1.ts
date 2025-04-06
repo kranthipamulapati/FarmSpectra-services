@@ -1,6 +1,6 @@
 import { createCanvas } from "canvas";
 import { ClientResponseError } from "pocketbase";
-import { fromFile, type TypedArray, type ReadRasterResult } from "geotiff";
+import { fromFile, type TypedArray } from "geotiff";
 
 import { loginToDatabase } from "../auth";
 
@@ -24,9 +24,10 @@ async function generateImages() {
 
             const tiff = await fromFile(tiff_path);
             const image = await tiff.getImage();
+            const rasters = await image.readRasters();
+
             const width = image.getWidth();
             const height = image.getHeight();
-            const rasters: ReadRasterResult = await image.readRasters();
 
             const redBand = rasters[2] as TypedArray;
             const nirBand = rasters[4] as TypedArray;
