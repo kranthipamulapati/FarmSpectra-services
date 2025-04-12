@@ -28,24 +28,27 @@ async function callback() {
                 )}' && end_date >= '${getUTCDate(new Date())}'`,
             });
 
-        const metadataFarms = await pocketbase
+        const farmsWithMetadata = await pocketbase
             .collection("farm_satellite_metadata")
             .getFullList<FarmSatelliteMetadata>();
 
-        const metadataFarmIds = new Set(
-            metadataFarms.map((meta) => `${meta.farm_fk}-${meta.satellite_fk}`)
+        const farmIdsWithMetadata = new Set(
+            farmsWithMetadata.map(
+                (meta) => `${meta.farm_fk}-${meta.satellite_fk}`
+            )
         );
 
-        const farms = taskedFarms.filter((pair) =>
-            metadataFarmIds.has(`${pair.farm_fk}-${pair.satellite_fk}`)
+        const taskedFarmsWithMetadata = taskedFarms.filter((pair) =>
+            farmIdsWithMetadata.has(`${pair.farm_fk}-${pair.satellite_fk}`)
         );
 
         const token = await getCopernicusAccessToken();
 
-        for (let i = 0; i < farms.length; i++) {
-            const { coordinates } = farms[i].expand.farm_fk;
+        for (let i = 0; i < taskedFarmsWithMetadata.length; i++) {
+            const { farm_fk, satellite_fk } = taskedFarmsWithMetadata[i];
+            const { coordinates } = taskedFarmsWithMetadata[i].expand.farm_fk;
             const { start_date, revisit_time, collection_code } =
-                farms[i].expand.satellite_fk;
+                taskedFarmsWithMetadata[i].expand.satellite_fk;
 
             const startDate = new Date(start_date);
 
@@ -90,10 +93,10 @@ async function callback() {
                         await pocketbase
                             .collection("farm_satellite_data")
                             .create({
-                                farm_fk: farms[i].farm_fk,
-                                satellite_fk: farms[i].satellite_fk,
-                                visit_date: datetime,
+                                farm_fk,
+                                satellite_fk,
                                 cloud_cover,
+                                visit_date: datetime,
                             });
                     }
                 } else {

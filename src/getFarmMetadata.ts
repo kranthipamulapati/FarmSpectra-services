@@ -28,25 +28,28 @@ async function getMetadata() {
                 )}' && end_date >= '${getUTCDate(new Date())}'`,
             });
 
-        const metadataFarms = await pocketbase
+        const farmsWithMetadata = await pocketbase
             .collection("farm_satellite_metadata")
             .getFullList<FarmSatelliteMetadata>();
 
-        const metadataFarmIds = new Set(
-            metadataFarms.map((meta) => `${meta.farm_fk}-${meta.satellite_fk}`)
+        const farmIdsWithMetadata = new Set(
+            farmsWithMetadata.map(
+                (meta) => `${meta.farm_fk}-${meta.satellite_fk}`
+            )
         );
 
-        const missingFarms = taskedFarms.filter(
+        const farmsWithoutMetadata = taskedFarms.filter(
             (pair) =>
-                !metadataFarmIds.has(`${pair.farm_fk}-${pair.satellite_fk}`)
+                !farmIdsWithMetadata.has(`${pair.farm_fk}-${pair.satellite_fk}`)
         );
 
         const token = await getCopernicusAccessToken();
 
-        for (let i = 0; i < missingFarms.length; i++) {
-            let { coordinates } = missingFarms[i].expand.farm_fk;
-            let { start_date, revisit_time, collection_code } =
-                missingFarms[i].expand.satellite_fk;
+        for (let i = 0; i < farmsWithoutMetadata.length; i++) {
+            const { farm_fk, satellite_fk } = farmsWithoutMetadata[i];
+            const { coordinates } = farmsWithoutMetadata[i].expand.farm_fk;
+            const { start_date, revisit_time, collection_code } =
+                farmsWithoutMetadata[i].expand.satellite_fk;
 
             const startDate = new Date(start_date);
             const endDate = new Date(startDate);
@@ -81,8 +84,8 @@ async function getMetadata() {
                     await pocketbase
                         .collection("farm_satellite_metadata")
                         .create({
-                            farm_fk: missingFarms[i].farm_fk,
-                            satellite_fk: missingFarms[i].satellite_fk,
+                            farm_fk,
+                            satellite_fk,
                             first_visit_date: availableDates[0],
                         });
                 }
