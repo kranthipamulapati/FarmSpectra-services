@@ -98,13 +98,17 @@ const runProcess = async () => {
                             },
                             data: [
                                 {
-                                    type: collection_code,
                                     dataFilter: {
                                         timeRange: {
                                             from: startTime,
                                             to: endTime,
                                         },
+                                        mosaickingOrder: "leastCC",
                                     },
+                                    processing: {
+                                        harmonizeValues: false,
+                                    },
+                                    type: collection_code,
                                 },
                             ],
                         },

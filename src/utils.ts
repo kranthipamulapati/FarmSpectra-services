@@ -8,12 +8,32 @@ const evalscript = `
                 return {
                     input: [
                         {
-                            units: "REFLECTANCE",
-                            bands: ["B02", "B03", "B04", "B05", "B08", "B11", "B12"]
+                            bands: [
+                                "B02", 
+                                "B03", 
+                                "B04", 
+                                "B05", 
+                                "B08", 
+                                "B11", 
+                                "B12", 
+                                "SCL",
+                                "CLD"
+                            ],
+                            units: [
+                                "REFLECTANCE", 
+                                "REFLECTANCE", 
+                                "REFLECTANCE", 
+                                "REFLECTANCE", 
+                                "REFLECTANCE", 
+                                "REFLECTANCE", 
+                                "REFLECTANCE", 
+                                "DN",
+                                "DN"
+                            ]
                         }
                     ],
                     output: {
-                        bands: 7,
+                        bands: 9,
                         id: "default",
                         sampleType: SampleType.FLOAT32
                     },
@@ -29,7 +49,9 @@ const evalscript = `
                     sample.B05,
                     sample.B08,
                     sample.B11,
-                    sample.B12
+                    sample.B12,
+                    sample.SCL,
+                    sample.CLD
                 ];
             }
         `;
