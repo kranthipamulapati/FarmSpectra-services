@@ -4,9 +4,9 @@ import { ClientResponseError } from "pocketbase";
 import {
     evalscript,
     getUTCDate,
+    getUTCRange,
     convertCoordsToPolygon,
     getHeightAndWidthInPixels,
-    getUTCRange,
 } from "./utils";
 
 import {
@@ -51,85 +51,99 @@ const runProcess = async () => {
         for (let i = 0; i < taskedFarmsWithMetadata.length; i++) {
             const { farm_fk, satellite_fk } = taskedFarmsWithMetadata[i];
             const { coordinates } = taskedFarmsWithMetadata[i].expand.farm_fk;
-            const { start_date, revisit_time, collection_code } =
+            const { revisit_time, collection_code } =
                 taskedFarmsWithMetadata[i].expand.satellite_fk;
 
-            const startDate = new Date(start_date);
-
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 3); // 1 for yesterday
-
-            const diffInDays = Math.floor(
-                (Number(yesterday) - Number(startDate)) / (1000 * 60 * 60 * 24)
+            const farmMetadata = farmsWithMetadata.find((pair) =>
+                farmIdsWithMetadata.has(`${pair.farm_fk}-${pair.satellite_fk}`)
             );
 
-            const isRevisitDayYesterday = diffInDays % revisit_time === 0;
+            if (farmMetadata) {
+                let { first_visit_date } = farmMetadata;
+                first_visit_date = first_visit_date.split(" ")[0];
 
-            const transformedCoordinates = convertCoordsToPolygon(coordinates);
-            const { height, width } = getHeightAndWidthInPixels(
-                transformedCoordinates
-            );
+                let last_visit_date: Date | string = new Date();
+                last_visit_date.setDate(last_visit_date.getDate() - 5); // 1 for yesterday
+                last_visit_date = getUTCDate(last_visit_date);
+                last_visit_date = last_visit_date.split("T")[0];
 
-            if (isRevisitDayYesterday) {
-                const { startTime, endTime } = getUTCRange(yesterday);
+                const diffInDays = Math.floor(
+                    (Number(new Date(first_visit_date)) -
+                        Number(new Date(last_visit_date))) /
+                        (1000 * 60 * 60 * 24)
+                );
 
-                const request = {
-                    input: {
-                        bounds: {
-                            geometry: {
-                                type: "Polygon",
-                                coordinates: [transformedCoordinates],
-                            },
-                            properties: {
-                                crs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
-                            },
-                        },
-                        data: [
-                            {
-                                type: collection_code,
-                                dataFilter: {
-                                    timeRange: {
-                                        from: startTime,
-                                        to: endTime,
-                                    },
+                const isRevisitDayYesterday = diffInDays % revisit_time === 0;
+
+                const transformedCoordinates =
+                    convertCoordsToPolygon(coordinates);
+                const { height, width } = getHeightAndWidthInPixels(
+                    transformedCoordinates
+                );
+
+                if (isRevisitDayYesterday) {
+                    const { startTime, endTime } = getUTCRange(
+                        new Date(last_visit_date)
+                    );
+
+                    const request = {
+                        input: {
+                            bounds: {
+                                geometry: {
+                                    type: "Polygon",
+                                    coordinates: [transformedCoordinates],
+                                },
+                                properties: {
+                                    crs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
                                 },
                             },
-                        ],
-                    },
-                    output: {
-                        width,
-                        height,
-                        responses: [
-                            {
-                                identifier: "default",
-                                format: { type: "image/tiff" },
-                            },
-                        ],
-                    },
-                    evalscript,
-                };
+                            data: [
+                                {
+                                    type: collection_code,
+                                    dataFilter: {
+                                        timeRange: {
+                                            from: startTime,
+                                            to: endTime,
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                        output: {
+                            width,
+                            height,
+                            responses: [
+                                {
+                                    identifier: "default",
+                                    format: { type: "image/tiff" },
+                                },
+                            ],
+                        },
+                        evalscript,
+                    };
 
-                const response = await axios.post(url, request, {
-                    headers: {
-                        Accept: "image/tiff",
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    responseType: "arraybuffer",
-                });
+                    const response = await axios.post(url, request, {
+                        headers: {
+                            Accept: "image/tiff",
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                        responseType: "arraybuffer",
+                    });
 
-                const date = startTime.split("T")[0];
+                    const date = startTime.split("T")[0];
 
-                const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`; // ${date}
+                    const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`; // ${date}
 
-                await Bun.write(path, response.data);
+                    await Bun.write(path, response.data);
 
-                await pocketbase.collection("farm_satellite_data").create({
-                    farm_fk,
-                    satellite_fk,
-                    tiff_path: path,
-                    visit_date: startTime,
-                });
+                    await pocketbase.collection("farm_satellite_data").create({
+                        farm_fk,
+                        satellite_fk,
+                        tiff_path: path,
+                        visit_date: startTime,
+                    });
+                }
             }
         }
     } catch (error: any) {
