@@ -59,17 +59,16 @@ const runProcess = async () => {
             );
 
             if (farmMetadata) {
-                let { first_visit_date } = farmMetadata;
-                first_visit_date = first_visit_date.split(" ")[0];
+                const firstVisitDate = new Date(
+                    farmMetadata.first_visit_date.split(" ")[0]
+                );
 
-                let last_visit_date: Date | string = new Date();
-                last_visit_date.setDate(last_visit_date.getDate() - 5); // 1 for yesterday
-                last_visit_date = getUTCDate(last_visit_date);
-                last_visit_date = last_visit_date.split("T")[0];
+                const lastVisitDate = new Date();
+                lastVisitDate.setUTCDate(lastVisitDate.getUTCDate() - 5); // 1 for yesterday
+                lastVisitDate.setUTCHours(0, 0, 0, 0);
 
                 const diffInDays = Math.floor(
-                    (Number(new Date(first_visit_date)) -
-                        Number(new Date(last_visit_date))) /
+                    (firstVisitDate.getTime() - lastVisitDate.getTime()) /
                         (1000 * 60 * 60 * 24)
                 );
 
@@ -83,7 +82,7 @@ const runProcess = async () => {
 
                 if (isRevisitDayYesterday) {
                     const { startTime, endTime } = getUTCRange(
-                        new Date(last_visit_date)
+                        new Date(lastVisitDate)
                     );
 
                     const request = {
