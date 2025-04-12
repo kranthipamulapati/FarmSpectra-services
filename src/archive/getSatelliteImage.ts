@@ -1,8 +1,8 @@
 import axios from "axios";
 import { bbox } from "@turf/turf";
 
-import { type Farm, pocketbase } from "./database";
-import { loginToDatabase, getCopernicusAccessToken } from "./auth";
+import { type Farm, pocketbase } from "../database";
+import { loginToDatabase, getCopernicusAccessToken } from "../auth";
 
 const runProcess = async () => {
     try {

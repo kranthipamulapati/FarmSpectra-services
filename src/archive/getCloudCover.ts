@@ -1,15 +1,15 @@
 import axios from "axios";
 import { ClientResponseError } from "pocketbase";
 
-import { getUTCDate, getUTCRange } from "./utils";
+import { getUTCDate, getUTCRange } from "../utils";
 
-import { loginToDatabase, getCopernicusAccessToken } from "./auth";
+import { loginToDatabase, getCopernicusAccessToken } from "../auth";
 
 import {
     pocketbase,
     type FarmSatelliteMetadata,
     type FarmSatelliteTaskExpand,
-} from "./database";
+} from "../database";
 
 const catalogApiUrl =
     "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search";
