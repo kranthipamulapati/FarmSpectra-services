@@ -34,7 +34,7 @@ const evalscript = `
             }
         `;
 
-const getUTCDate = (date) => {
+const getUTCDate = (date: Date) => {
     return new Date(
         Date.UTC(
             date.getUTCFullYear(),
@@ -48,7 +48,7 @@ const getUTCDate = (date) => {
     ).toISOString();
 };
 
-function getUTCRange(date) {
+function getUTCRange(date: Date) {
     const startTime = new Date(
         Date.UTC(
             date.getUTCFullYear(),

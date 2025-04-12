@@ -49,7 +49,7 @@ type FarmSatelliteMetadata = {
     id: string;
     farm_fk: string;
     satellite_fk: string;
-    first_visit_date: Date;
+    first_visit_date: string;
     created: Date;
     updated: Date;
 };
