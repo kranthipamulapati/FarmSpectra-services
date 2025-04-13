@@ -3,7 +3,6 @@ import { ClientResponseError } from "pocketbase";
 import { fromFile, type TypedArray } from "geotiff";
 
 import { loginToDatabase } from "../auth";
-
 import { pocketbase, type FarmSatelliteDataExpand } from "../database";
 
 const ndviColorRanges = [
@@ -36,6 +35,7 @@ const ndviColorRanges = [
     { min: 0.9, max: 0.95, hex: "#0F8C40" },
     { min: 0.95, max: null, hex: "#0F8C40" },
 ];
+
 async function createNDVIColorMap() {
     try {
         await loginToDatabase();
@@ -75,7 +75,7 @@ async function createNDVIColorMap() {
             for (let i = 0; i < ndviData.length; i++) {
                 const ndvi = ndviData[i];
 
-                let colorHex = "#000000"; // default
+                let colorHex = "#000000"; // default fallback
                 for (const range of ndviColorRanges) {
                     const withinMin = range.min === null || ndvi >= range.min;
                     const withinMax = range.max === null || ndvi < range.max;
@@ -96,6 +96,7 @@ async function createNDVIColorMap() {
 
             const basePath = `./images/${farm_fk}/${date}/${collection_code}`;
 
+            // Create base image
             const rawImage = sharp(rgbData, {
                 raw: {
                     width,
@@ -104,11 +105,15 @@ async function createNDVIColorMap() {
                 },
             });
 
+            // Save raw image
             await rawImage.png().toFile(`${basePath}/ndvi_raw.png`);
+
+            // Resize with high-quality kernel
             await rawImage
                 .resize({
                     width: 256,
                     height: 256,
+                    kernel: sharp.kernel.nearest,
                 })
                 .png()
                 .toFile(`${basePath}/ndvi_visual.png`);
