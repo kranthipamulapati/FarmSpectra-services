@@ -64,7 +64,7 @@ const runProcess = async () => {
                 );
 
                 const lastVisitDate = new Date();
-                lastVisitDate.setUTCDate(lastVisitDate.getUTCDate() - 5); // 1 for yesterday
+                lastVisitDate.setUTCDate(lastVisitDate.getUTCDate() - 1); // 1 for yesterday
                 lastVisitDate.setUTCHours(0, 0, 0, 0);
 
                 const diffInDays = Math.floor(
