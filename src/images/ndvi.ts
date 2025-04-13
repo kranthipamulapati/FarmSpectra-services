@@ -6,6 +6,36 @@ import { loginToDatabase } from "../auth";
 
 import { pocketbase, type FarmSatelliteDataExpand } from "../database";
 
+const ndviColorRanges = [
+    { min: null, max: -1.1, hex: "#AC0028" },
+    { min: -1.1, max: -0.2, hex: "#B3002B" },
+    { min: -0.2, max: -0.1, hex: "#C1002F" },
+    { min: -0.1, max: 0, hex: "#D20034" },
+    { min: 0, max: 0.025, hex: "#E30039" },
+    { min: 0.025, max: 0.05, hex: "#F3003D" },
+    { min: 0.05, max: 0.075, hex: "#E74C39" },
+    { min: 0.075, max: 0.1, hex: "#EC5B3E" },
+    { min: 0.1, max: 0.125, hex: "#F26C43" },
+    { min: 0.125, max: 0.15, hex: "#F57B49" },
+    { min: 0.15, max: 0.175, hex: "#F98A4E" },
+    { min: 0.175, max: 0.2, hex: "#FB9F53" },
+    { min: 0.2, max: 0.25, hex: "#FCAE58" },
+    { min: 0.25, max: 0.3, hex: "#FDB65E" },
+    { min: 0.3, max: 0.35, hex: "#FDC463" },
+    { min: 0.35, max: 0.4, hex: "#D2E58C" },
+    { min: 0.4, max: 0.45, hex: "#E1F18F" },
+    { min: 0.45, max: 0.5, hex: "#B9E484" },
+    { min: 0.5, max: 0.55, hex: "#92D875" },
+    { min: 0.55, max: 0.6, hex: "#7ABF6E" },
+    { min: 0.6, max: 0.65, hex: "#67A86A" },
+    { min: 0.65, max: 0.7, hex: "#529E61" },
+    { min: 0.7, max: 0.75, hex: "#3A9957" },
+    { min: 0.75, max: 0.8, hex: "#268D4E" },
+    { min: 0.8, max: 0.85, hex: "#178C44" },
+    { min: 0.85, max: 0.9, hex: "#158C42" },
+    { min: 0.9, max: 0.95, hex: "#0F8C40" },
+    { min: 0.95, max: null, hex: "#0F8C40" },
+];
 async function createNDVIColorMap() {
     try {
         await loginToDatabase();
@@ -26,111 +56,66 @@ async function createNDVIColorMap() {
             const image = await tiff.getImage();
             const rasters = await image.readRasters();
 
-            // Get image dimensions
             const width = image.getWidth();
             const height = image.getHeight();
 
-            // Get red and NIR bands (B04 and B08)
-            const redBand = rasters[2] as TypedArray; // B04 at index 2
-            const nirBand = rasters[4] as TypedArray; // B08 at index 4
+            const redBand = rasters[2] as TypedArray;
+            const nirBand = rasters[4] as TypedArray;
 
-            // Create a new array to store NDVI values
             const ndviData = new Float32Array(width * height);
 
             for (let i = 0; i < redBand.length; i++) {
                 const red = redBand[i];
                 const nir = nirBand[i];
-
-                // NDVI formula: (NIR - RED) / (NIR + RED)
-                // Handle division by zero or very small values
-                if (nir + red === 0 || (nir === 0 && red === 0)) {
-                    ndviData[i] = 0;
-                } else {
-                    ndviData[i] = (nir - red) / (nir + red);
-                }
+                ndviData[i] = nir + red === 0 ? 0 : (nir - red) / (nir + red);
             }
 
-            // Calculate NDVI for each pixel
-
-            // Find min and max NDVI values for proper scaling
-            let minNDVI = 1;
-            let maxNDVI = -1;
-
-            for (let i = 0; i < ndviData.length; i++) {
-                if (ndviData[i] < minNDVI) minNDVI = ndviData[i];
-                if (ndviData[i] > maxNDVI) maxNDVI = ndviData[i];
-            }
-
-            // Create an RGB buffer for the PNG image
             const rgbData = Buffer.alloc(width * height * 3);
-
-            // Convert NDVI to RGB colors
-            // Common NDVI color scheme:
-            // -1.0 to 0.0: shades of brown (barren/urban)
-            // 0.0 to 0.2: light green/yellow (sparse vegetation)
-            // 0.2 to 0.4: green (moderate vegetation)
-            // 0.4 to 0.6: dark green (dense vegetation)
-            // 0.6 to 1.0: very dark green (very dense vegetation)
 
             for (let i = 0; i < ndviData.length; i++) {
                 const ndvi = ndviData[i];
-                let r, g, b;
 
-                if (ndvi < 0) {
-                    // Brown for negative NDVI (water, clouds, snow)
-                    const intensity = Math.max(0, 1 + ndvi * 2); // -1 -> 0, 0 -> 1
-                    r = Math.round(139 * intensity);
-                    g = Math.round(69 * intensity);
-                    b = Math.round(19 * intensity);
-                } else if (ndvi < 0.2) {
-                    // Yellow to light green transition
-                    const ratio = ndvi / 0.2;
-                    r = Math.round(255 * (1 - ratio));
-                    g = 255;
-                    b = Math.round(50 * ratio);
-                } else if (ndvi < 0.4) {
-                    // Light green to medium green
-                    const ratio = (ndvi - 0.2) / 0.2;
-                    r = 0;
-                    g = 255;
-                    b = Math.round(50 + 50 * ratio);
-                } else if (ndvi < 0.6) {
-                    // Medium green to dark green
-                    const ratio = (ndvi - 0.4) / 0.2;
-                    r = 0;
-                    g = Math.round(255 * (1 - ratio * 0.5));
-                    b = Math.round(100 * (1 - ratio));
-                } else {
-                    // Very dark green for highest NDVI
-                    const ratio = Math.min(1, (ndvi - 0.6) / 0.4);
-                    r = 0;
-                    g = Math.round(125 * (1 - ratio * 0.6));
-                    b = 0;
+                let colorHex = "#000000"; // default
+                for (const range of ndviColorRanges) {
+                    const withinMin = range.min === null || ndvi >= range.min;
+                    const withinMax = range.max === null || ndvi < range.max;
+                    if (withinMin && withinMax) {
+                        colorHex = range.hex;
+                        break;
+                    }
                 }
 
-                // Set RGB values in the buffer
+                const r = parseInt(colorHex.slice(1, 3), 16);
+                const g = parseInt(colorHex.slice(3, 5), 16);
+                const b = parseInt(colorHex.slice(5, 7), 16);
+
                 rgbData[i * 3] = r;
                 rgbData[i * 3 + 1] = g;
                 rgbData[i * 3 + 2] = b;
             }
 
-            // Create PNG using sharp
-            await sharp(rgbData, {
+            const basePath = `./images/${farm_fk}/${date}/${collection_code}`;
+
+            const rawImage = sharp(rgbData, {
                 raw: {
                     width,
                     height,
                     channels: 3,
                 },
-            })
+            });
+
+            await rawImage.png().toFile(`${basePath}/ndvi_raw.png`);
+            await rawImage
+                .resize({
+                    width: 256,
+                    height: 256,
+                })
                 .png()
-                .toFile(
-                    `./images/${farm_fk}/${date}/${collection_code}/ndvi2.png`
-                );
+                .toFile(`${basePath}/ndvi_visual.png`);
         }
     } catch (error) {
         if (error instanceof ClientResponseError) {
             const { data, message } = error.response;
-
             const errorMessages = Object.entries(data || {})
                 .map(
                     ([field, err]: [string, any]) => `${field}: ${err.message}`
