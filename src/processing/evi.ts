@@ -4,6 +4,8 @@ import { fromFile, type TypedArray } from "geotiff";
 
 import { loginToDatabase } from "../auth";
 
+import { eviColorRanges } from "../constants";
+
 import { pocketbase, type FarmSatelliteDataExpand } from "../database";
 
 async function createEVIColorMap() {
@@ -46,63 +48,51 @@ async function createEVIColorMap() {
                     denominator === 0 ? 0 : (2.5 * (nir - red)) / denominator;
             }
 
-            let minEVI = 1;
-            let maxEVI = -1;
-
-            for (let i = 0; i < eviData.length; i++) {
-                if (eviData[i] < minEVI) minEVI = eviData[i];
-                if (eviData[i] > maxEVI) maxEVI = eviData[i];
-            }
-
             const rgbData = Buffer.alloc(width * height * 3);
 
             for (let i = 0; i < eviData.length; i++) {
                 const evi = eviData[i];
-                let r, g, b;
 
-                if (evi < 0) {
-                    const intensity = Math.max(0, 1 + evi * 2);
-                    r = Math.round(139 * intensity);
-                    g = Math.round(69 * intensity);
-                    b = Math.round(19 * intensity);
-                } else if (evi < 0.2) {
-                    const ratio = evi / 0.2;
-                    r = Math.round(255 * (1 - ratio));
-                    g = 255;
-                    b = Math.round(50 * ratio);
-                } else if (evi < 0.4) {
-                    const ratio = (evi - 0.2) / 0.2;
-                    r = 0;
-                    g = 255;
-                    b = Math.round(50 + 50 * ratio);
-                } else if (evi < 0.6) {
-                    const ratio = (evi - 0.4) / 0.2;
-                    r = 0;
-                    g = Math.round(255 * (1 - ratio * 0.5));
-                    b = Math.round(100 * (1 - ratio));
-                } else {
-                    const ratio = Math.min(1, (evi - 0.6) / 0.4);
-                    r = 0;
-                    g = Math.round(125 * (1 - ratio * 0.6));
-                    b = 0;
+                let colorHex = "#000000"; // default fallback
+                for (const range of eviColorRanges) {
+                    const withinMin = range.min === null || evi >= range.min;
+                    const withinMax = range.max === null || evi < range.max;
+
+                    if (withinMin && withinMax) {
+                        colorHex = range.hex;
+                        break;
+                    }
                 }
+
+                const r = parseInt(colorHex.slice(1, 3), 16);
+                const g = parseInt(colorHex.slice(3, 5), 16);
+                const b = parseInt(colorHex.slice(5, 7), 16);
 
                 rgbData[i * 3] = r;
                 rgbData[i * 3 + 1] = g;
                 rgbData[i * 3 + 2] = b;
             }
 
-            await sharp(rgbData, {
+            const basePath = `./images/${farm_fk}/${date}/${collection_code}`;
+
+            // Create base image
+            const rawImage = sharp(rgbData, {
                 raw: {
                     width,
                     height,
                     channels: 3,
                 },
-            })
+            });
+
+            // Resize with high-quality kernel
+            await rawImage
+                .resize({
+                    width: 256,
+                    height: 256,
+                    kernel: sharp.kernel.nearest,
+                })
                 .png()
-                .toFile(
-                    `./images/${farm_fk}/${date}/${collection_code}/evi.png`
-                );
+                .toFile(`${basePath}/evi.png`);
         }
     } catch (error) {
         if (error instanceof ClientResponseError) {

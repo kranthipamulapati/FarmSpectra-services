@@ -77,9 +77,6 @@ async function createNDVIColorMap() {
                 },
             });
 
-            // Save raw image
-            await rawImage.png().toFile(`${basePath}/ndvi_raw.png`);
-
             // Resize with high-quality kernel
             await rawImage
                 .resize({
@@ -88,7 +85,7 @@ async function createNDVIColorMap() {
                     kernel: sharp.kernel.nearest,
                 })
                 .png()
-                .toFile(`${basePath}/ndvi_visual.png`);
+                .toFile(`${basePath}/ndvi.png`);
         }
     } catch (error) {
         if (error instanceof ClientResponseError) {
