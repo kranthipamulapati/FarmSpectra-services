@@ -2,60 +2,6 @@ import { bbox } from "@turf/turf";
 
 import type { Coordinate } from "./database";
 
-const evalscript = `
-            //VERSION=3
-            function setup() {
-                return {
-                    input: [
-                        {
-                            bands: [
-                                "B02", 
-                                "B03", 
-                                "B04", 
-                                "B05", 
-                                "B08", 
-                                "B11", 
-                                "B12", 
-                                "SCL",
-                                "CLD"
-                            ],
-                            units: [
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "DN",
-                                "DN"
-                            ]
-                        }
-                    ],
-                    output: {
-                        bands: 9,
-                        id: "default",
-                        sampleType: SampleType.FLOAT32
-                    },
-                    mosaicking: Mosaicking.SIMPLE
-                };
-            }
-
-            function evaluatePixel(sample) {
-                return [
-                    sample.B02,
-                    sample.B03,
-                    sample.B04,
-                    sample.B05,
-                    sample.B08,
-                    sample.B11,
-                    sample.B12,
-                    sample.SCL,
-                    sample.CLD
-                ];
-            }
-        `;
-
 const getUTCDate = (date: Date) => {
     return new Date(
         Date.UTC(
@@ -136,7 +82,6 @@ const getHeightAndWidthInPixels = (
 };
 
 export {
-    evalscript,
     getUTCDate,
     getUTCRange,
     convertCoordsToPolygon,

@@ -2,7 +2,6 @@ import axios from "axios";
 import { ClientResponseError } from "pocketbase";
 
 import {
-    evalscript,
     getUTCDate,
     getUTCRange,
     convertCoordsToPolygon,
@@ -14,6 +13,8 @@ import {
     type FarmSatelliteMetadata,
     type FarmSatelliteTaskExpand,
 } from "./database";
+
+import { sentinel_2_l2a_evalScript } from "./constants";
 
 import { loginToDatabase, getCopernicusAccessToken } from "./auth";
 
@@ -122,7 +123,7 @@ const runProcess = async () => {
                                 },
                             ],
                         },
-                        evalscript,
+                        evalscript: sentinel_2_l2a_evalScript,
                     };
 
                     const response = await axios.post(url, request, {
