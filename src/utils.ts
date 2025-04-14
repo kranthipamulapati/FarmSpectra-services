@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { bbox } from "@turf/turf";
 
 import type { Coordinate } from "./database";
@@ -81,9 +82,53 @@ const getHeightAndWidthInPixels = (
     return { width, height };
 };
 
+async function generateColorMapImage(
+    data: Float32Array,
+    width: number,
+    height: number,
+    colorRanges: { min: number | null; max: number | null; hex: string }[],
+    outputPath: string
+) {
+    const rgbData = Buffer.alloc(width * height * 3);
+
+    for (let i = 0; i < data.length; i++) {
+        const value = data[i];
+
+        let colorHex = "#000000";
+        for (const range of colorRanges) {
+            const withinMin = range.min === null || value >= range.min;
+            const withinMax = range.max === null || value < range.max;
+            if (withinMin && withinMax) {
+                colorHex = range.hex;
+                break;
+            }
+        }
+
+        const r = parseInt(colorHex.slice(1, 3), 16);
+        const g = parseInt(colorHex.slice(3, 5), 16);
+        const b = parseInt(colorHex.slice(5, 7), 16);
+
+        rgbData[i * 3] = r;
+        rgbData[i * 3 + 1] = g;
+        rgbData[i * 3 + 2] = b;
+    }
+
+    await sharp(rgbData, {
+        raw: { width, height, channels: 3 },
+    })
+        .resize({
+            width: 256,
+            height: 256,
+            kernel: sharp.kernel.nearest,
+        })
+        .png()
+        .toFile(outputPath);
+}
+
 export {
     getUTCDate,
     getUTCRange,
+    generateColorMapImage,
     convertCoordsToPolygon,
     getHeightAndWidthInPixels,
 };
