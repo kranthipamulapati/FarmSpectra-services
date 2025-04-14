@@ -92,13 +92,10 @@ async function createColorMaps() {
                 gndviData[i] =
                     gndviDenom === 0 ? 0 : (nir - green) / gndviDenom;
 
-                const gciDenom = green;
-                gciData[i] = gciDenom === 0 ? 0 : nir / gciDenom - 1;
+                gciData[i] = green === 0 ? 0 : nir / green - 1;
 
                 const redEdge = redEdgeBand[i];
-                const redEdgeCIDenom = redEdge;
-                redEdgeCIData[i] =
-                    redEdgeCIDenom === 0 ? 0 : nir / redEdgeCIDenom - 1;
+                redEdgeCIData[i] = redEdge === 0 ? 0 : nir / redEdge - 1;
 
                 const saviDenom = nir + red + L;
                 saviData[i] =
