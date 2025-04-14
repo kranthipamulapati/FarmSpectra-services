@@ -1,4 +1,4 @@
-import { fromFile } from "geotiff";
+import { fromFile, type TypedArray } from "geotiff";
 
 function calculateAverage(arr: Float32Array) {
     const validValues = arr.filter((value) => !isNaN(value));
@@ -13,10 +13,10 @@ function calculateAverage(arr: Float32Array) {
 
 async function processTiff(filePath: string) {
     const tiff = await fromFile(filePath);
-    const rasters: Array<Array<number>> = await tiff.readRasters();
+    const rasters = await tiff.readRasters();
 
-    const SCL = rasters[7];
-    const CLD = rasters[8];
+    const SCL = rasters[7] as TypedArray;
+    const CLD = rasters[8] as TypedArray;
 
     const cloudMaskSCL = new Float32Array(SCL.length);
     const cloudMaskCLD = new Float32Array(CLD.length);

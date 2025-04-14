@@ -43,4 +43,4 @@ const loginToDatabase = async () => {
     }
 };
 
-export { getCopernicusAccessToken, loginToDatabase };
+export { loginToDatabase, getCopernicusAccessToken };

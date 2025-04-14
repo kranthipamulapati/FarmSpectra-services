@@ -89,6 +89,7 @@ async function generateColorMapImage(
     colorRanges: { min: number | null; max: number | null; hex: string }[],
     outputPath: string
 ) {
+    //@ts-ignore
     const rgbData = Buffer.alloc(width * height * 3);
 
     for (let i = 0; i < data.length; i++) {

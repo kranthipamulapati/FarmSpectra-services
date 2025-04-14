@@ -18,7 +18,7 @@ type Farm = {
     user_fk: string;
     coordinates: Array<Coordinate>;
     created: Date;
-    update: Date;
+    updated: Date;
     active: boolean;
 };
 
@@ -38,8 +38,8 @@ type FarmSatelliteTask = {
     id: string;
     farm_fk: string;
     satellite_fk: string;
-    start_date: Date;
-    end_date: Date;
+    start_date: string;
+    end_date: string;
     active: boolean;
     created: Date;
     updated: Date;
@@ -58,7 +58,7 @@ type FarmSatelliteData = {
     id: string;
     farm_fk: string;
     satellite_fk: string;
-    visit_date: Date;
+    visit_date: string;
     cloud_cover: number;
     tiff_path: string;
     processed: boolean;

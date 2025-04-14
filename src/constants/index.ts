@@ -4,6 +4,60 @@ const client_secret = process.env.ClientSecret;
 const pocketbaseUsername = process.env.Pocketbase_Admin_Username;
 const pocketbasePassword = process.env.Pocketbase_Admin_Password;
 
+const sentinel_2_l2a_evalScript = `
+        //VERSION=3
+        function setup() {
+            return {
+                input: [
+                    {
+                        bands: [
+                            "B02", 
+                            "B03", 
+                            "B04", 
+                            "B05", 
+                            "B08", 
+                            "B11", 
+                            "B12", 
+                            "SCL",
+                            "CLD"
+                        ],
+                        units: [
+                            "REFLECTANCE", 
+                            "REFLECTANCE", 
+                            "REFLECTANCE", 
+                            "REFLECTANCE", 
+                            "REFLECTANCE", 
+                            "REFLECTANCE", 
+                            "REFLECTANCE", 
+                            "DN",
+                            "DN"
+                        ]
+                    }
+                ],
+                output: {
+                    bands: 9,
+                    id: "default",
+                    sampleType: SampleType.FLOAT32
+                },
+                mosaicking: Mosaicking.SIMPLE
+            };
+        }
+
+        function evaluatePixel(sample) {
+            return [
+                sample.B02,
+                sample.B03,
+                sample.B04,
+                sample.B05,
+                sample.B08,
+                sample.B11,
+                sample.B12,
+                sample.SCL,
+                sample.CLD
+            ];
+        }
+    `;
+
 const ndviColorRanges = [
     { min: null, max: -1.1, hex: "#AC0028" },
     { min: -1.1, max: -0.2, hex: "#B3002B" },
@@ -178,60 +232,6 @@ const msiColorRanges = [
     { min: 0.8, max: 1.0, hex: "#f46d43" },
     { min: 1.0, max: null, hex: "#d73027" },
 ];
-
-const sentinel_2_l2a_evalScript = `
-            //VERSION=3
-            function setup() {
-                return {
-                    input: [
-                        {
-                            bands: [
-                                "B02", 
-                                "B03", 
-                                "B04", 
-                                "B05", 
-                                "B08", 
-                                "B11", 
-                                "B12", 
-                                "SCL",
-                                "CLD"
-                            ],
-                            units: [
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "REFLECTANCE", 
-                                "DN",
-                                "DN"
-                            ]
-                        }
-                    ],
-                    output: {
-                        bands: 9,
-                        id: "default",
-                        sampleType: SampleType.FLOAT32
-                    },
-                    mosaicking: Mosaicking.SIMPLE
-                };
-            }
-
-            function evaluatePixel(sample) {
-                return [
-                    sample.B02,
-                    sample.B03,
-                    sample.B04,
-                    sample.B05,
-                    sample.B08,
-                    sample.B11,
-                    sample.B12,
-                    sample.SCL,
-                    sample.CLD
-                ];
-            }
-        `;
 
 export {
     apiBaseURL,

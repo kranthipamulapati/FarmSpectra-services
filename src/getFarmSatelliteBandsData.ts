@@ -139,6 +139,7 @@ const runProcess = async () => {
 
                     const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`; // ${date}
 
+                    //@ts-ignore
                     await Bun.write(path, response.data);
 
                     await pocketbase.collection("farm_satellite_data").create({
