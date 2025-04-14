@@ -6,17 +6,17 @@ import {
     getUTCRange,
     convertCoordsToPolygon,
     getHeightAndWidthInPixels,
-} from "../../utils";
+} from "../utils";
 
 import {
     pocketbase,
     type FarmSatelliteMetadata,
     type FarmSatelliteTaskExpand,
-} from "../../database";
+} from "../database";
 
-import { sentinel_2_l2a_evalScript } from "../../constants";
+import { sentinel_2_l2a_evalScript } from "../constants";
 
-import { loginToDatabase, getCopernicusAccessToken } from "../../auth";
+import { loginToDatabase, getCopernicusAccessToken } from "../auth";
 
 const url = "https://sh.dataspace.copernicus.eu/api/v1/process";
 
