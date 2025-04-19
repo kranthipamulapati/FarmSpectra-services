@@ -5,6 +5,7 @@ const apiBaseURL = process.env.API_BASE_URL;
 
 const copernicusBaseUrl = process.env.copernicusBaseUrl;
 const copernicusAuthUrl = process.env.copernicusAuthUrl;
+const copernicusProcessUrl = process.env.copernicusProcessUrl;
 const copernicusCatalogUrl = process.env.copernicusCatalogUrl;
 
 const pocketbaseUsername = process.env.Pocketbase_Admin_Username;
@@ -256,10 +257,11 @@ export {
     psriColorRanges,
     nddiColorRanges,
     mtvi2ColorRanges,
-    pocketbaseUsername,
-    pocketbasePassword,
     copernicusAuthUrl,
     copernicusBaseUrl,
+    pocketbaseUsername,
+    pocketbasePassword,
     copernicusCatalogUrl,
+    copernicusProcessUrl,
     sentinel_2_l2a_evalScript,
 };

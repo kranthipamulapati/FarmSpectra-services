@@ -5,13 +5,13 @@ import {
     pocketbase,
     loginToDatabase,
     type FarmSatelliteTaskExpand,
-} from "../database";
+} from "../../database";
 
-import { getS2FirstVisitDate } from "../helpers/copernicus";
+import { getS2FirstVisitDate } from "../../helpers/copernicus";
 
-const metadataRouter = new Elysia({ prefix: "/metadata" });
+const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 
-metadataRouter.get(
+dataRouter.get(
     "/get/:id",
     async ({ set, params }) => {
         const { id } = params;
@@ -75,4 +75,4 @@ metadataRouter.get(
     }
 );
 
-export { metadataRouter };
+export { dataRouter };
