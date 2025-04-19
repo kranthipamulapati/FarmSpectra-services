@@ -32,9 +32,11 @@ const getCopernicusAccessToken = async () => {
 
 const loginToDatabase = async () => {
     try {
-        await pocketbase
-            .collection("_superusers")
-            .authWithPassword(pocketbaseUsername, pocketbasePassword);
+        if (pocketbaseUsername && pocketbasePassword) {
+            await pocketbase
+                .collection("_superusers")
+                .authWithPassword(pocketbaseUsername, pocketbasePassword);
+        }
     } catch (error: any) {
         console.log(
             "Error fetching access token:",
