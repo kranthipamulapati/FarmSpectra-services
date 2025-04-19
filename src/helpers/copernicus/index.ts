@@ -82,4 +82,4 @@ const getS2FirstVisitDate = async (taskedFarm: FarmSatelliteTaskExpand) => {
     }
 };
 
-export { getS2FirstVisitDate };
+export { getAccessToken, getS2FirstVisitDate };

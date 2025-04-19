@@ -10,13 +10,14 @@ import {
 
 import {
     pocketbase,
+    loginToDatabase,
     type FarmSatelliteMetadata,
     type FarmSatelliteTaskExpand,
 } from "../database";
 
-import { sentinel_2_l2a_evalScript } from "../constants";
+import { getAccessToken } from "../helpers/copernicus";
 
-import { loginToDatabase, getCopernicusAccessToken } from "../auth";
+import { sentinel_2_l2a_evalScript } from "../constants";
 
 const runProcess = async () => {
     try {
@@ -45,7 +46,7 @@ const runProcess = async () => {
             farmIdsWithMetadata.has(`${pair.farm_fk}-${pair.satellite_fk}`)
         );
 
-        const token = await getCopernicusAccessToken();
+        const token = await getAccessToken();
 
         for (let i = 0; i < taskedFarmsWithMetadata.length; i++) {
             const { farm_fk, satellite_fk } = taskedFarmsWithMetadata[i];

@@ -2,8 +2,8 @@ import { Elysia } from "elysia";
 
 const app = new Elysia();
 
-import { dataRouter } from "./src/farms/satellite/data";
-import { metadataRouter } from "./src/farms/satellite/metadata";
+import { dataRouter } from "./src/routes/farms/satellite/data";
+import { metadataRouter } from "./src/routes/farms/satellite/metadata";
 
 app.use(dataRouter);
 app.use(metadataRouter);

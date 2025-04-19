@@ -1,9 +1,11 @@
 import axios from "axios";
 import { ClientResponseError } from "pocketbase";
 
+import { loginToDatabase } from "../database";
+
 import { getUTCDate, getUTCRange } from "../utils";
 
-import { loginToDatabase, getCopernicusAccessToken } from "../auth";
+import { getAccessToken } from "../helpers/copernicus";
 
 import {
     pocketbase,
@@ -42,7 +44,7 @@ async function callback() {
             farmIdsWithMetadata.has(`${pair.farm_fk}-${pair.satellite_fk}`)
         );
 
-        const token = await getCopernicusAccessToken();
+        const token = await getAccessToken();
 
         for (let i = 0; i < taskedFarmsWithMetadata.length; i++) {
             const { farm_fk, satellite_fk } = taskedFarmsWithMetadata[i];

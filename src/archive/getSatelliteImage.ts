@@ -1,8 +1,9 @@
 import axios from "axios";
 import { bbox } from "@turf/turf";
 
-import { type Farm, pocketbase } from "../database";
-import { loginToDatabase, getCopernicusAccessToken } from "../auth";
+import { getAccessToken } from "../helpers/copernicus";
+
+import { type Farm, pocketbase, loginToDatabase } from "../database";
 
 const runProcess = async () => {
     try {
@@ -41,7 +42,7 @@ const runProcess = async () => {
         const widthPixels = Math.round(widthMeters / resolution);
         const heightPixels = Math.round(heightMeters / resolution);
 
-        const token = await getCopernicusAccessToken();
+        const token = await getAccessToken();
 
         const evalscript = `
             //VERSION=3

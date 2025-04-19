@@ -5,9 +5,9 @@ import {
     pocketbase,
     loginToDatabase,
     type FarmSatelliteTaskExpand,
-} from "../../database";
+} from "../../../database";
 
-import { getS2FirstVisitDate } from "../../helpers/copernicus";
+import { getS2FirstVisitDate } from "../../../helpers/copernicus";
 
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 

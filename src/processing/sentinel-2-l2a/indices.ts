@@ -16,9 +16,14 @@ import {
     tviColorRanges,
     variColorRanges,
 } from "../../constants";
-import { loginToDatabase } from "../../auth";
+
+import {
+    pocketbase,
+    loginToDatabase,
+    type FarmSatelliteDataExpand,
+} from "../../database";
+
 import { generateColorMapImage } from "../../utils";
-import { pocketbase, type FarmSatelliteDataExpand } from "../../database";
 
 const L = 0.5;
 
