@@ -1,6 +1,10 @@
 import PocketBase from "pocketbase";
 
-import { apiBaseURL } from "../constants";
+import {
+    apiBaseURL,
+    pocketbasePassword,
+    pocketbaseUsername,
+} from "../constants";
 
 const pocketbase = new PocketBase(apiBaseURL);
 pocketbase.autoCancellation(false);
@@ -96,7 +100,20 @@ type FarmSatelliteDataExpand = FarmSatelliteData & {
     };
 };
 
-export { pocketbase };
+const loginToDatabase = async () => {
+    try {
+        if (pocketbaseUsername && pocketbasePassword) {
+            await pocketbase
+                .collection("_superusers")
+                .authWithPassword(pocketbaseUsername, pocketbasePassword);
+        } else {
+            throw new Error("Username or password not found.");
+        }
+    } catch (error: any) {
+        throw error;
+    }
+};
+
 export type {
     Farm,
     Satellite,
@@ -106,3 +123,4 @@ export type {
     FarmSatelliteDataExpand,
     FarmSatelliteMetadataExpand,
 };
+export { pocketbase, loginToDatabase };

@@ -1,11 +1,14 @@
 const client_id = process.env.ClientID;
-const apiBaseURL = process.env.API_BASE_URL;
 const client_secret = process.env.ClientSecret;
+
+const apiBaseURL = process.env.API_BASE_URL;
+
+const copernicusBaseUrl = process.env.copernicusBaseUrl;
+const copernicusAuthUrl = process.env.copernicusAuthUrl;
+const copernicusCatalogUrl = process.env.copernicusCatalogUrl;
+
 const pocketbaseUsername = process.env.Pocketbase_Admin_Username;
 const pocketbasePassword = process.env.Pocketbase_Admin_Password;
-
-const copernicusCatalogApiUrl =
-    "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search";
 
 const sentinel_2_l2a_evalScript = `
         //VERSION=3
@@ -255,6 +258,8 @@ export {
     mtvi2ColorRanges,
     pocketbaseUsername,
     pocketbasePassword,
-    copernicusCatalogApiUrl,
+    copernicusAuthUrl,
+    copernicusBaseUrl,
+    copernicusCatalogUrl,
     sentinel_2_l2a_evalScript,
 };
