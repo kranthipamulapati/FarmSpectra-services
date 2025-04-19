@@ -109,7 +109,7 @@ const loginToDatabase = async () => {
         } else {
             throw new Error("Username or password not found.");
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         throw error;
     }
 };

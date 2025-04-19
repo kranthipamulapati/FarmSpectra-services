@@ -1,4 +1,5 @@
 import { t, Elysia } from "elysia";
+import { ClientResponseError } from "pocketbase";
 
 import {
     pocketbase,
@@ -10,9 +11,9 @@ import { getS2FirstVisitDate } from "../helpers/copernicus";
 
 const metadataRouter = new Elysia({ prefix: "/metadata" });
 
-metadataRouter.post(
+metadataRouter.get(
     "/get/:id",
-    async ({ params }) => {
+    async ({ set, params }) => {
         const { id } = params;
 
         try {
@@ -46,10 +47,25 @@ metadataRouter.post(
             }
 
             return { message: `Metadata for ID ${id} fetched successfully.` };
-        } catch (err) {
-            return {
-                message: err.message,
-            };
+        } catch (error) {
+            set.status = 400;
+
+            if (error instanceof ClientResponseError) {
+                const { data, message } = error.response;
+
+                const errorMessages = Object.entries(data || {})
+                    .map(
+                        ([field, err]: [string, any]) =>
+                            `${field}: ${err.message}`
+                    )
+                    .join("\n");
+
+                return `${message}\n${errorMessages}`;
+            } else if (error instanceof Error) {
+                return error.message;
+            } else {
+                return "An unknown error occurred";
+            }
         }
     },
     {
