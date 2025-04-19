@@ -36,12 +36,11 @@ const loginToDatabase = async () => {
             await pocketbase
                 .collection("_superusers")
                 .authWithPassword(pocketbaseUsername, pocketbasePassword);
+        } else {
+            throw new Error("Username or password not found.");
         }
     } catch (error: any) {
-        console.log(
-            "Error fetching access token:",
-            error.response ? error.response.data : error.message
-        );
+        throw error;
     }
 };
 

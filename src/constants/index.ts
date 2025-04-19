@@ -4,6 +4,9 @@ const client_secret = process.env.ClientSecret;
 const pocketbaseUsername = process.env.Pocketbase_Admin_Username;
 const pocketbasePassword = process.env.Pocketbase_Admin_Password;
 
+const copernicusCatalogApiUrl =
+    "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search";
+
 const sentinel_2_l2a_evalScript = `
         //VERSION=3
         function setup() {
@@ -252,5 +255,6 @@ export {
     mtvi2ColorRanges,
     pocketbaseUsername,
     pocketbasePassword,
+    copernicusCatalogApiUrl,
     sentinel_2_l2a_evalScript,
 };
