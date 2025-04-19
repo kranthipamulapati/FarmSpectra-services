@@ -34,6 +34,7 @@ type Satellite = {
     collection_code: string;
     spatial_resolution: number;
     revisit_time: number;
+    active: boolean;
     created: Date;
     updated: Date;
 };
@@ -118,7 +119,9 @@ export type {
     Farm,
     Satellite,
     Coordinate,
+    FarmSatelliteTask,
     FarmSatelliteMetadata,
+    FarmSatelliteIndexImage,
     FarmSatelliteTaskExpand,
     FarmSatelliteDataExpand,
     FarmSatelliteMetadataExpand,

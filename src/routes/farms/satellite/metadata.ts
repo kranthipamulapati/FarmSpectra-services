@@ -12,7 +12,7 @@ import { getS2FirstVisitDate } from "../../../helpers/copernicus";
 const metadataRouter = new Elysia({ prefix: "/farms/satellite/metadata" });
 
 metadataRouter.get(
-    "/get/:id",
+    "/get/:id", // farm satellite task id
     async ({ set, params }) => {
         const { id } = params;
 
@@ -25,7 +25,19 @@ metadataRouter.get(
                     expand: "farm_fk, satellite_fk",
                 });
 
-            if (taskedFarm) {
+            const today = new Date();
+            const endDate = new Date(taskedFarm.end_date.replace(" ", "T"));
+            const startDate = new Date(taskedFarm.start_date.replace(" ", "T"));
+
+            const isTodayInRange = today >= startDate && today <= endDate;
+
+            if (
+                taskedFarm && // task exists
+                isTodayInRange && // check if today is in tasked dates range
+                taskedFarm.active && // task is active
+                taskedFarm.expand.farm_fk.active && // farm is active
+                taskedFarm.expand.satellite_fk.active // satellite is active
+            ) {
                 const { farm_fk, satellite_fk } = taskedFarm;
                 const { collection_code } = taskedFarm.expand.satellite_fk;
 
@@ -43,7 +55,9 @@ metadataRouter.get(
                         });
                 }
             } else {
-                throw new Error("Farm not found.");
+                throw new Error(
+                    "Farm/Tasking/Satellite inactive or today not in tasked dates."
+                );
             }
 
             return { message: `Metadata for ID ${id} fetched successfully.` };

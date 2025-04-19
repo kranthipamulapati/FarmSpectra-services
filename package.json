@@ -10,5 +10,11 @@
     },
     "devDependencies": {
         "@types/bun": "1.2.10"
+    },
+    "scripts": {
+        "dev": "bun --watch app.ts",
+        "build": "bun build app.ts --target bun --outdir ./dist",
+        "start": "NODE_ENV=production bun dist/app.js",
+        "test": "bun test"
     }
 }

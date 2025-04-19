@@ -4,49 +4,58 @@ import { ClientResponseError } from "pocketbase";
 import {
     pocketbase,
     loginToDatabase,
-    type FarmSatelliteTaskExpand,
+    type FarmSatelliteTask,
+    type FarmSatelliteMetadataExpand,
 } from "../../../database";
 
-import { getS2FirstVisitDate } from "../../../helpers/copernicus";
+import { getSatelliteVisitDates } from "../../../helpers";
 
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 
 dataRouter.get(
-    "/get/:id",
+    "/getPrevious/:id", // farm satellite metadata id
     async ({ set, params }) => {
         const { id } = params;
 
         try {
             await loginToDatabase();
 
-            const taskedFarm = await pocketbase
-                .collection("farm_satellite_tasking")
-                .getOne<FarmSatelliteTaskExpand>(id, {
+            const farmMetadata = await pocketbase
+                .collection("farm_satellite_metadata")
+                .getOne<FarmSatelliteMetadataExpand>(id, {
                     expand: "farm_fk, satellite_fk",
                 });
 
-            if (taskedFarm) {
-                const { farm_fk, satellite_fk } = taskedFarm;
-                const { collection_code } = taskedFarm.expand.satellite_fk;
+            const { farm_fk, satellite_fk } = farmMetadata;
 
-                if (collection_code === "sentinel-2-l2a") {
-                    const first_visit_date = await getS2FirstVisitDate(
-                        taskedFarm
-                    );
+            const taskedFarm = await pocketbase
+                .collection("farm_satellite_tasking")
+                .getFirstListItem<FarmSatelliteTask>(
+                    `farm_fk = '${farm_fk}' && satellite_fk = '${satellite_fk}'`
+                );
 
-                    await pocketbase
-                        .collection("farm_satellite_metadata")
-                        .create({
-                            farm_fk,
-                            satellite_fk,
-                            first_visit_date,
-                        });
-                }
+            if (
+                taskedFarm && // task exists
+                taskedFarm.active && // task is active
+                farmMetadata && // metadata exists
+                farmMetadata.expand.farm_fk.active && // farm is active
+                farmMetadata.expand.satellite_fk.active // satellite is active
+            ) {
+                const { start_date } = taskedFarm;
+                const { first_visit_date } = farmMetadata;
+
+                const { revisit_time } = farmMetadata.expand.satellite_fk;
+
+                const dates = getSatelliteVisitDates({
+                    start_date,
+                    revisit_time,
+                    first_visit_date,
+                });
+
+                return dates;
             } else {
                 throw new Error("Farm not found.");
             }
-
-            return { message: `Metadata for ID ${id} fetched successfully.` };
         } catch (error) {
             set.status = 400;
 
