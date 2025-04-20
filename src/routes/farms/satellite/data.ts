@@ -108,6 +108,8 @@ dataRouter.get(
                             });
                     }
                 }
+
+                return "previous data extraction success";
             } else {
                 throw new Error(
                     "Farm/Task/Satellite inactive or today not in task range."
