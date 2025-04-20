@@ -80,6 +80,35 @@ type FarmSatelliteIndexImage = {
     updated: Date;
 };
 
+type Index = {
+    id: string;
+    code: string;
+    name: string;
+    active: boolean;
+    created: Date;
+    updated: Date;
+};
+
+type SatelliteIndex = {
+    id: string;
+    index_fk: string;
+    satellite_fk: string;
+    color_matrix: Array<{
+        hex: string;
+        min: null | number;
+        max: null | number;
+    }>;
+    active: boolean;
+    created: Date;
+    updated: Date;
+};
+
+type SatelliteIndexExpand = SatelliteIndex & {
+    expand: {
+        index_fk: Index;
+    };
+};
+
 type FarmSatelliteTaskExpand = FarmSatelliteTask & {
     expand: {
         farm_fk: Farm;
@@ -117,9 +146,12 @@ const loginToDatabase = async () => {
 
 export type {
     Farm,
+    Index,
     Satellite,
     Coordinate,
+    SatelliteIndex,
     FarmSatelliteTask,
+    SatelliteIndexExpand,
     FarmSatelliteMetadata,
     FarmSatelliteIndexImage,
     FarmSatelliteTaskExpand,

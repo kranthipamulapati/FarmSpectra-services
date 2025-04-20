@@ -82,13 +82,19 @@ const getHeightAndWidthInPixels = (
     return { width, height };
 };
 
-async function generateColorMapImage(
-    data: Float32Array,
-    width: number,
-    height: number,
-    colorRanges: { min: number | null; max: number | null; hex: string }[],
-    outputPath: string
-) {
+async function generateColorMapImage({
+    data,
+    width,
+    height,
+    filePath,
+    colorMatrix,
+}: {
+    width: number;
+    height: number;
+    filePath: string;
+    data: Float32Array;
+    colorMatrix: { min: number | null; max: number | null; hex: string }[];
+}) {
     //@ts-ignore
     const rgbData = Buffer.alloc(width * height * 3);
 
@@ -96,7 +102,7 @@ async function generateColorMapImage(
         const value = data[i];
 
         let colorHex = "#000000";
-        for (const range of colorRanges) {
+        for (const range of colorMatrix) {
             const withinMin = range.min === null || value >= range.min;
             const withinMax = range.max === null || value < range.max;
             if (withinMin && withinMax) {
@@ -123,7 +129,7 @@ async function generateColorMapImage(
             kernel: sharp.kernel.nearest,
         })
         .png()
-        .toFile(outputPath);
+        .toFile(filePath);
 }
 
 function calculateAverage(arr: Float32Array) {
