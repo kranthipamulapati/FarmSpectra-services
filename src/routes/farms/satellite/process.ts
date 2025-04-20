@@ -8,7 +8,7 @@ import {
     type FarmSatelliteDataExpand,
 } from "../../../database";
 
-import { generateColorMapImage } from "../../../utils";
+import { calculateAverage, generateColorMapImage } from "../../../utils";
 
 import {
     cciColorRanges,
@@ -68,6 +68,8 @@ processRouter.get(
                 const redEdgeBand = rasters[3] as TypedArray; // B05
                 const nirBand = rasters[4] as TypedArray; // B08
                 const swirBand = rasters[5] as TypedArray; // B11
+                const SCL = rasters[7] as TypedArray; // SCL
+                const CLD = rasters[8] as TypedArray; // CLD
 
                 const gciData = new Float32Array(width * height);
                 const eviData = new Float32Array(width * height);
@@ -90,6 +92,8 @@ processRouter.get(
                 const mtvi2Data = new Float32Array(width * height);
                 const nddiData = new Float32Array(width * height);
                 const msiData = new Float32Array(width * height);
+                const cloudMaskSCL = new Float32Array(SCL.length);
+                const cloudMaskCLD = new Float32Array(CLD.length);
 
                 for (let i = 0; i < redBand.length; i++) {
                     const red = redBand[i];
@@ -174,6 +178,9 @@ processRouter.get(
 
                     const msiDenom = nir === 0 ? 1e-6 : nir;
                     msiData[i] = swir / msiDenom;
+
+                    cloudMaskSCL[i] = SCL[i] >= 7 ? 1 : 0;
+                    cloudMaskCLD[i] = CLD[i] > 50 ? 1 : 0;
                 }
 
                 for (let i = 0; i < ndviData.length; i++) {
@@ -339,8 +346,13 @@ processRouter.get(
                     ),
                 ]);
 
+                // Function to calculate average ignoring NaNs
+                const cloudCoverageSCL = calculateAverage(cloudMaskSCL) * 100; // Convert to percentage
+                const cloudCoverageCLD = calculateAverage(cloudMaskCLD) * 100; // Convert to percentage
+
                 await pocketbase.collection("farm_satellite_data").update(id, {
                     processed: true,
+                    cloud_cover: cloudCoverageSCL,
                 });
             } else {
                 throw new Error("Already processed.");

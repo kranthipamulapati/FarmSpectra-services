@@ -126,9 +126,21 @@ async function generateColorMapImage(
         .toFile(outputPath);
 }
 
+function calculateAverage(arr: Float32Array) {
+    const validValues = arr.filter((value) => !isNaN(value));
+
+    const sum = validValues.reduce(
+        (acc, currentValue) => acc + currentValue,
+        0
+    );
+
+    return sum / validValues.length;
+}
+
 export {
     getUTCDate,
     getUTCRange,
+    calculateAverage,
     generateColorMapImage,
     convertCoordsToPolygon,
     getHeightAndWidthInPixels,
