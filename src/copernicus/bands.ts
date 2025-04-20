@@ -17,7 +17,7 @@ import {
 
 import { getAccessToken } from "../helpers/copernicus";
 
-import { sentinel_2_l2a_evalScript } from "../constants";
+import { copernicusProcessUrl, sentinel_2_l2a_evalScript } from "../constants";
 
 const runProcess = async () => {
     try {
@@ -125,14 +125,18 @@ const runProcess = async () => {
                         evalscript: sentinel_2_l2a_evalScript,
                     };
 
-                    const response = await axios.post(url, request, {
-                        headers: {
-                            Accept: "image/tiff",
-                            Authorization: `Bearer ${token}`,
-                            "Content-Type": "application/json",
-                        },
-                        responseType: "arraybuffer",
-                    });
+                    const response = await axios.post(
+                        copernicusProcessUrl,
+                        request,
+                        {
+                            headers: {
+                                Accept: "image/tiff",
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json",
+                            },
+                            responseType: "arraybuffer",
+                        }
+                    );
 
                     const date = startTime.split("T")[0];
 

@@ -5,10 +5,14 @@ import {
     client_secret,
     copernicusAuthUrl,
     copernicusBaseUrl,
+    copernicusProcessUrl,
     copernicusCatalogUrl,
+    sentinel_2_l2a_evalScript,
 } from "../../constants";
 
-import type { FarmSatelliteTaskExpand } from "../../database";
+import { convertCoordsToPolygon, getHeightAndWidthInPixels } from "../../utils";
+
+import type { Coordinate, FarmSatelliteTaskExpand } from "../../database";
 
 const getAccessToken = async () => {
     try {
@@ -82,4 +86,76 @@ const getS2FirstVisitDate = async (taskedFarm: FarmSatelliteTaskExpand) => {
     }
 };
 
-export { getAccessToken, getS2FirstVisitDate };
+const getS2FarmVisitData = async ({
+    token,
+    endTime,
+    startTime,
+    coordinates,
+}: {
+    token: string;
+    endTime: string;
+    startTime: string;
+    coordinates: Array<Coordinate>;
+}) => {
+    try {
+        const transformedCoordinates = convertCoordsToPolygon(coordinates);
+        const { height, width } = getHeightAndWidthInPixels(
+            transformedCoordinates
+        );
+
+        const request = {
+            input: {
+                bounds: {
+                    geometry: {
+                        type: "Polygon",
+                        coordinates: [transformedCoordinates],
+                    },
+                    properties: {
+                        crs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+                    },
+                },
+                data: [
+                    {
+                        dataFilter: {
+                            timeRange: {
+                                to: endTime,
+                                from: startTime,
+                            },
+                            mosaickingOrder: "leastCC",
+                        },
+                        processing: {
+                            harmonizeValues: false,
+                        },
+                        type: "sentinel-2-l2a",
+                    },
+                ],
+            },
+            output: {
+                width,
+                height,
+                responses: [
+                    {
+                        identifier: "default",
+                        format: { type: "image/tiff" },
+                    },
+                ],
+            },
+            evalscript: sentinel_2_l2a_evalScript,
+        };
+
+        const response = await axios.post(copernicusProcessUrl, request, {
+            headers: {
+                Accept: "image/tiff",
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            responseType: "arraybuffer",
+        });
+
+        return response.data;
+    } catch (err: unknown) {
+        throw err;
+    }
+};
+
+export { getAccessToken, getS2FarmVisitData, getS2FirstVisitDate };

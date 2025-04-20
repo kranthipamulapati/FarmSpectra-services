@@ -8,6 +8,13 @@ import {
     type FarmSatelliteMetadataExpand,
 } from "../../../database";
 
+import {
+    getAccessToken,
+    getS2FarmVisitData,
+} from "../../../helpers/copernicus";
+
+import { getUTCRange } from "../../../utils";
+
 import { getSatelliteVisitDates } from "../../../helpers";
 
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
@@ -30,9 +37,13 @@ dataRouter.get(
                 throw new Error("Farm metadata not found");
             }
 
-            const { active: satelliteActive, revisit_time } =
-                farmMetadata.expand.satellite_fk;
-            const { active: farmActive } = farmMetadata.expand.farm_fk;
+            const {
+                revisit_time,
+                collection_code,
+                active: satelliteActive,
+            } = farmMetadata.expand.satellite_fk;
+            const { active: farmActive, coordinates } =
+                farmMetadata.expand.farm_fk;
             const { farm_fk, satellite_fk, first_visit_date } = farmMetadata;
 
             const taskedFarm = await pocketbase
@@ -65,7 +76,38 @@ dataRouter.get(
                     first_visit_date,
                 });
 
-                return dates;
+                if (collection_code === "sentinel-2-l2a") {
+                    const token = await getAccessToken();
+
+                    for (let i = 0; i < dates.length; i++) {
+                        const { endTime, startTime } = getUTCRange(
+                            new Date(dates[i])
+                        );
+
+                        const date = startTime.split("T")[0];
+
+                        const data = await getS2FarmVisitData({
+                            endTime,
+                            startTime,
+                            coordinates,
+                            token,
+                        });
+
+                        const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
+
+                        //@ts-ignore
+                        await Bun.write(path, data);
+
+                        await pocketbase
+                            .collection("farm_satellite_data")
+                            .create({
+                                farm_fk,
+                                satellite_fk,
+                                tiff_path: path,
+                                visit_date: startTime,
+                            });
+                    }
+                }
             } else {
                 throw new Error(
                     "Farm/Task/Satellite inactive or today not in task range."
