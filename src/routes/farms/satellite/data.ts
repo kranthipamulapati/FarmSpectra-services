@@ -26,7 +26,14 @@ dataRouter.get(
                     expand: "farm_fk, satellite_fk",
                 });
 
-            const { farm_fk, satellite_fk } = farmMetadata;
+            if (!farmMetadata) {
+                throw new Error("Farm metadata not found");
+            }
+
+            const { active: satelliteActive, revisit_time } =
+                farmMetadata.expand.satellite_fk;
+            const { active: farmActive } = farmMetadata.expand.farm_fk;
+            const { farm_fk, satellite_fk, first_visit_date } = farmMetadata;
 
             const taskedFarm = await pocketbase
                 .collection("farm_satellite_tasking")
@@ -34,18 +41,24 @@ dataRouter.get(
                     `farm_fk = '${farm_fk}' && satellite_fk = '${satellite_fk}'`
                 );
 
+            if (!taskedFarm) {
+                throw new Error("Farm task not found");
+            }
+
+            const { start_date, end_date, active: taskActive } = taskedFarm;
+
+            const today = new Date();
+            const endDate = new Date(end_date.replace(" ", "T"));
+            const startDate = new Date(start_date.replace(" ", "T"));
+
+            const isTodayInRange = today >= startDate && today <= endDate;
+
             if (
-                taskedFarm && // task exists
-                taskedFarm.active && // task is active
-                farmMetadata && // metadata exists
-                farmMetadata.expand.farm_fk.active && // farm is active
-                farmMetadata.expand.satellite_fk.active // satellite is active
+                farmActive && // farm is active
+                taskActive && // task is active
+                isTodayInRange && // today is in task range
+                satelliteActive // satellite is active
             ) {
-                const { start_date } = taskedFarm;
-                const { first_visit_date } = farmMetadata;
-
-                const { revisit_time } = farmMetadata.expand.satellite_fk;
-
                 const dates = getSatelliteVisitDates({
                     start_date,
                     revisit_time,
@@ -54,7 +67,9 @@ dataRouter.get(
 
                 return dates;
             } else {
-                throw new Error("Farm not found.");
+                throw new Error(
+                    "Farm/Task/Satellite inactive or today not in task range."
+                );
             }
         } catch (error) {
             set.status = 400;
