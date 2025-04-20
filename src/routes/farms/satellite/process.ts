@@ -281,6 +281,18 @@ processRouter.get(
                             })
                         );
 
+                        await Promise.all(
+                            indices.map((satelliteIndex, i) => {
+                                return pocketbase
+                                    .collection("farm_satellite_index_images")
+                                    .create({
+                                        tiff_fk: id,
+                                        index_fk: satelliteIndices[i].index_fk,
+                                        image_url: `https://database.farmspectra.com/public/images/${farm_fk}/${date}/${collection_code}/${satelliteIndex}.png`,
+                                    });
+                            })
+                        );
+
                         // Function to calculate average ignoring NaNs
                         const cloudCoverageSCL =
                             calculateAverage(data.SCL) * 100; // Convert to percentage
