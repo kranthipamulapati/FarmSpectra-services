@@ -69,29 +69,16 @@ processRouter.get(
                         const SCL = rasters[7] as TypedArray; // SCL
                         const CLD = rasters[8] as TypedArray; // CLD
 
-                        const ndviData = new Float32Array(width * height);
-                        const gndviData = new Float32Array(width * height);
-                        const gciData = new Float32Array(width * height);
-                        const reciData = new Float32Array(width * height);
-                        const saviData = new Float32Array(width * height);
-                        const msaviData = new Float32Array(width * height);
-                        const osaviData = new Float32Array(width * height);
-                        const ndwiData = new Float32Array(width * height);
-                        const ndmiData = new Float32Array(width * height);
-                        const arviData = new Float32Array(width * height);
-                        const variData = new Float32Array(width * height);
-                        const eviData = new Float32Array(width * height);
-                        const evi2Data = new Float32Array(width * height);
-                        const laiData = new Float32Array(width * height);
-                        const sipiData = new Float32Array(width * height);
-                        const cviData = new Float32Array(width * height);
-                        const psriData = new Float32Array(width * height);
-                        const tviData = new Float32Array(width * height);
-                        const mtvi2Data = new Float32Array(width * height);
-                        const nddiData = new Float32Array(width * height);
-                        const msiData = new Float32Array(width * height);
-                        const cloudMaskSCL = new Float32Array(SCL.length);
-                        const cloudMaskCLD = new Float32Array(CLD.length);
+                        const data: {
+                            [key: string]: Float32Array<ArrayBuffer>;
+                        } = {
+                            SCL: new Float32Array(width * height), // for clouds, not included in indices
+                            CLD: new Float32Array(width * height), // for clouds, not included in indices
+                        };
+
+                        for (let i = 0; i < indices.length; i++) {
+                            data[indices[i]] = new Float32Array(width * height);
+                        }
 
                         for (let i = 0; i < height * width; i++) {
                             const red = redBand[i];
@@ -101,146 +88,146 @@ processRouter.get(
                             const swir = swirBand[i];
                             const redEdge = redEdgeBand[i];
 
-                            if (indices.includes("NDVI")) {
+                            if (data.NDVI) {
                                 const denominator = nir + red;
 
-                                ndviData[i] =
+                                data.NDVI[i] =
                                     denominator === 0
                                         ? 0
                                         : (nir - red) / denominator;
                             }
 
-                            if (indices.includes("GNDVI")) {
+                            if (data.GNDVI) {
                                 const denominator = nir + green;
 
-                                gndviData[i] =
+                                data.GNDVI[i] =
                                     denominator === 0
                                         ? 0
                                         : (nir - green) / denominator;
                             }
 
-                            if (indices.includes("GCI")) {
-                                gciData[i] = green === 0 ? 0 : nir / green - 1;
+                            if (data.GCI) {
+                                data.GCI[i] = green === 0 ? 0 : nir / green - 1;
                             }
 
-                            if (indices.includes("RECI")) {
-                                reciData[i] =
+                            if (data.RECI) {
+                                data.RECI[i] =
                                     redEdge === 0 ? 0 : nir / redEdge - 1;
                             }
 
-                            if (indices.includes("SAVI")) {
+                            if (data.SAVI) {
                                 const denominator = nir + red + L;
 
-                                saviData[i] =
+                                data.SAVI[i] =
                                     denominator === 0
                                         ? 0
                                         : ((nir - red) / denominator) * (1 + L);
                             }
 
-                            if (indices.includes("MSAVI")) {
+                            if (data.MSAVI) {
                                 const term =
                                     (2 * nir + 1) ** 2 - 8 * (nir - red);
 
-                                msaviData[i] =
+                                data.MSAVI[i] =
                                     (2 * nir +
                                         1 -
                                         Math.sqrt(Math.max(0, term))) /
                                     2;
                             }
 
-                            if (indices.includes("OSAVI")) {
+                            if (data.OSAVI) {
                                 const denominator = nir + red + 0.16;
 
-                                osaviData[i] =
+                                data.OSAVI[i] =
                                     denominator === 0
                                         ? 0
                                         : (nir - red) / denominator;
                             }
 
-                            if (indices.includes("NDWI")) {
+                            if (data.NDWI) {
                                 const denominator = green + nir;
 
-                                ndwiData[i] =
+                                data.NDWI[i] =
                                     denominator === 0
                                         ? 0
                                         : (green - nir) / denominator;
                             }
 
-                            if (indices.includes("NDMI")) {
+                            if (data.NDMI) {
                                 const denominator = nir + swir;
 
-                                ndmiData[i] =
+                                data.NDMI[i] =
                                     denominator === 0
                                         ? 0
                                         : (nir - swir) / denominator;
                             }
 
-                            if (indices.includes("ARVI")) {
+                            if (data.ARVI) {
                                 const numerator = nir - (2 * red - blue);
                                 const denominator = nir + (2 * red + blue);
 
-                                arviData[i] =
+                                data.ARVI[i] =
                                     denominator === 0
                                         ? 0
                                         : numerator / denominator;
                             }
 
-                            if (indices.includes("VARI")) {
+                            if (data.VARI) {
                                 const denominator = green + red - blue;
 
-                                variData[i] =
+                                data.VARI[i] =
                                     denominator === 0
                                         ? 0
                                         : (green - red) / denominator;
                             }
 
-                            if (indices.includes("EVI")) {
+                            if (data.EVI) {
                                 const denominator =
                                     nir + 6 * red - 7.5 * blue + 1;
 
-                                eviData[i] =
+                                data.EVI[i] =
                                     denominator === 0
                                         ? 0
                                         : (2.5 * (nir - red)) / denominator;
                             }
 
-                            if (indices.includes("EVI2")) {
+                            if (data.EVI2) {
                                 const denominator = nir + 2.4 * red + 1;
 
-                                evi2Data[i] =
+                                data.EVI2[i] =
                                     denominator === 0
                                         ? 0
                                         : (2.5 * (nir - red)) / denominator;
                             }
 
-                            if (indices.includes("SIPI")) {
+                            if (data.SIPI) {
                                 const denominator = nir - red;
 
-                                sipiData[i] =
+                                data.SIPI[i] =
                                     denominator === 0
                                         ? 0
                                         : (nir - blue) / denominator;
                             }
 
-                            if (indices.includes("CVI")) {
+                            if (data.CVI) {
                                 const denominator = red === 0 ? 1e-6 : red;
 
-                                cviData[i] = nir / denominator;
+                                data.CVI[i] = nir / denominator;
                             }
 
-                            if (indices.includes("PSRI")) {
+                            if (data.PSRI) {
                                 const denominator = nir === 0 ? 1e-6 : nir;
 
-                                psriData[i] = (red - blue) / denominator;
+                                data.PSRI[i] = (red - blue) / denominator;
                             }
 
-                            if (indices.includes("TVI")) {
-                                tviData[i] =
+                            if (data.TVI) {
+                                data.TVI[i] =
                                     0.5 *
                                     (120 * (nir - green) - 200 * (red - green));
                             }
 
-                            if (indices.includes("MTVI2")) {
+                            if (data.MTVI2) {
                                 const numerator =
                                     1.5 *
                                     (1.2 * (nir - green) - 2.5 * (red - green));
@@ -250,267 +237,55 @@ processRouter.get(
                                         (6 * nir - 5 * Math.sqrt(red))
                                 );
 
-                                mtvi2Data[i] =
+                                data.MTVI2[i] =
                                     sqrtTerm === 0 ? 0 : numerator / sqrtTerm;
                             }
 
-                            if (indices.includes("MSI")) {
+                            if (data.MSI) {
                                 const denominator = nir === 0 ? 1e-6 : nir;
 
-                                msiData[i] = swir / denominator;
+                                data.MSI[i] = swir / denominator;
                             }
 
-                            cloudMaskSCL[i] = SCL[i] >= 7 ? 1 : 0;
-                            cloudMaskCLD[i] = CLD[i] > 50 ? 1 : 0;
+                            data.SCL[i] = SCL[i] >= 7 ? 1 : 0;
+                            data.CLD[i] = CLD[i] > 50 ? 1 : 0;
                         }
 
-                        for (let i = 0; i < ndviData.length; i++) {
-                            const ndvi = ndviData[i];
-                            const ndwi = ndwiData[i];
-                            const denom = ndvi + ndwi;
+                        if (data.LAI && data.NDVI && data.NDWI) {
+                            for (let i = 0; i < data?.NDVI.length; i++) {
+                                const ndvi = data.NDVI[i];
+                                const ndwi = data.NDWI[i];
 
-                            const value = (0.69 - ndvi) / 0.59;
-                            laiData[i] = value <= 0 ? 0 : -Math.log(value);
+                                const denom = ndvi + ndwi;
 
-                            nddiData[i] =
-                                denom === 0 ? 0 : (ndvi - ndwi) / denom;
+                                const value = (0.69 - ndvi) / 0.59;
+                                data.LAI[i] = value <= 0 ? 0 : -Math.log(value);
+
+                                data.LAI[i] =
+                                    denom === 0 ? 0 : (ndvi - ndwi) / denom;
+                            }
                         }
 
                         const basePath = `./images/${farm_fk}/${date}/${collection_code}`;
 
-                        if (indices.includes("NDVI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: ndviData,
-                                filePath: `${basePath}/ndvi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("NDVI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("GNDVI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: gndviData,
-                                filePath: `${basePath}/gndvi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("GNDVI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("GCI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: gciData,
-                                filePath: `${basePath}/gci.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("GCI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("RECI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: reciData,
-                                filePath: `${basePath}/reci.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("RECI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("SAVI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: saviData,
-                                filePath: `${basePath}/savi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("SAVI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("MSAVI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: msaviData,
-                                filePath: `${basePath}/msavi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("MSAVI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("OSAVI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: osaviData,
-                                filePath: `${basePath}/osavi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("OSAVI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("NDWI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: ndwiData,
-                                filePath: `${basePath}/ndwi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("NDWI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("NDMI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: ndmiData,
-                                filePath: `${basePath}/ndmi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("NDMI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("VARI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: variData,
-                                filePath: `${basePath}/vari.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("VARI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("ARVI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: arviData,
-                                filePath: `${basePath}/arvi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("ARVI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("EVI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: eviData,
-                                filePath: `${basePath}/evi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("EVI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("EVI2")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: evi2Data,
-                                filePath: `${basePath}/evi2.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("EVI2")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("SIPI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: sipiData,
-                                filePath: `${basePath}/sipi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("SIPI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("CVI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: cviData,
-                                filePath: `${basePath}/cvi.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("CVI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("PSRI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: psriData,
-                                filePath: `${basePath}/PSRI.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("PSRI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("TVI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: tviData,
-                                filePath: `${basePath}/TVI.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("TVI")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("MTVI2")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: mtvi2Data,
-                                filePath: `${basePath}/MTVI2.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("MTVI2")]
-                                        .color_matrix,
-                            });
-                        }
-
-                        if (indices.includes("MSI")) {
-                            await generateColorMapImage({
-                                width,
-                                height,
-                                data: msiData,
-                                filePath: `${basePath}/MSI.png`,
-                                colorMatrix:
-                                    satelliteIndices[indices.indexOf("MSI")]
-                                        .color_matrix,
-                            });
-                        }
+                        await Promise.all(
+                            indices.map((satelliteIndex, i) => {
+                                return generateColorMapImage({
+                                    width,
+                                    height,
+                                    data: data[satelliteIndex],
+                                    colorMatrix:
+                                        satelliteIndices[i].color_matrix,
+                                    filePath: `${basePath}/${satelliteIndex}.png`,
+                                });
+                            })
+                        );
 
                         // Function to calculate average ignoring NaNs
                         const cloudCoverageSCL =
-                            calculateAverage(cloudMaskSCL) * 100; // Convert to percentage
+                            calculateAverage(data.SCL) * 100; // Convert to percentage
                         const cloudCoverageCLD =
-                            calculateAverage(cloudMaskCLD) * 100; // Convert to percentage
+                            calculateAverage(data.CLD) * 100; // Convert to percentage
 
                         await pocketbase
                             .collection("farm_satellite_data")
@@ -518,6 +293,8 @@ processRouter.get(
                                 processed: true,
                                 cloud_cover: cloudCoverageSCL,
                             });
+
+                        return "success";
                     }
                 }
             } else {
