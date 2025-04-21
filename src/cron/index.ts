@@ -9,6 +9,8 @@ import {
 
 import { getUTCRange } from "../utils";
 
+import { publicFolder } from "../constants";
+
 import { getAccessToken, getS2FarmVisitData } from "../helpers/copernicus";
 
 const getFarmsSatelliteDataCron = cron({
@@ -68,7 +70,7 @@ const getFarmsSatelliteDataCron = cron({
                                 coordinates,
                             });
 
-                            const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
+                            const path = `${publicFolder}/images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
 
                             await Bun.write(path, data);
 
@@ -77,8 +79,8 @@ const getFarmsSatelliteDataCron = cron({
                                 .create({
                                     farm_fk,
                                     satellite_fk,
-                                    tiff_path: path,
                                     visit_date: startTime,
+                                    tiff_path: `https://database.farmspectra.com/public/images/${farm_fk}/${date}/${collection_code}/tiff.tif`,
                                 });
                         }
                     }

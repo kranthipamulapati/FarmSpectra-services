@@ -2,6 +2,7 @@ const client_id = process.env.Client_ID;
 const client_secret = process.env.Client_Secret;
 
 const apiBaseURL = process.env.API_BASE_URL;
+const publicFolder = process.env.public_folder;
 
 const databaseUsername = process.env.Database_Admin_Username;
 const databasePassword = process.env.Database_Admin_Password;
@@ -72,6 +73,7 @@ export {
     apiBaseURL,
     client_id,
     client_secret,
+    publicFolder,
     databaseUsername,
     databasePassword,
     copernicusAuthUrl,

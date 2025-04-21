@@ -14,6 +14,8 @@ import {
 
 import { getUTCRange } from "../../../utils";
 
+import { publicFolder } from "../../../constants";
+
 import { getSatelliteVisitDates } from "../../../helpers";
 
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
@@ -74,15 +76,15 @@ dataRouter.get(
                         coordinates,
                     });
 
-                    const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
+                    const path = `${publicFolder}/images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
 
                     await Bun.write(path, data);
 
                     await pocketbase.collection("farm_satellite_data").create({
                         farm_fk,
                         satellite_fk,
-                        tiff_path: path,
                         visit_date: startTime,
+                        tiff_path: `https://database.farmspectra.com/public/images/${farm_fk}/${date}/${collection_code}/tiff.tif`,
                     });
                 }
             }

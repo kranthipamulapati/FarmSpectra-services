@@ -4,6 +4,7 @@ import { fromFile, type TypedArray } from "geotiff";
 import {
     client_id,
     client_secret,
+    publicFolder,
     copernicusAuthUrl,
     copernicusBaseUrl,
     copernicusProcessUrl,
@@ -382,7 +383,7 @@ const processS2Tiff = async (
                 }
             }
 
-            const basePath = `./images/${farm_fk}/${date}/${collection_code}`;
+            const basePath = `${publicFolder}/images/${farm_fk}/${date}/${collection_code}`;
 
             await Promise.all(
                 indices.map((satelliteIndex, i) => {
