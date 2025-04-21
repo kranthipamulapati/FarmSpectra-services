@@ -4,7 +4,7 @@ import { ClientResponseError } from "pocketbase";
 import {
     pocketbase,
     loginToDatabase,
-    type FarmSatelliteTaskExpand,
+    type FarmSatelliteTaskMetadata,
 } from "../../../database";
 
 import { getS2FirstVisitDate } from "../../../helpers/copernicus";
@@ -20,27 +20,24 @@ metadataRouter.get(
             await loginToDatabase();
 
             const taskedFarm = await pocketbase
-                .collection("farm_satellite_tasking")
-                .getOne<FarmSatelliteTaskExpand>(id, {
-                    expand: "farm_fk, satellite_fk",
-                });
+                .collection("farm_satellite_tasking_metadata_view")
+                .getOne<FarmSatelliteTaskMetadata>(id);
+
+            const {
+                farm_fk,
+                end_date,
+                start_date,
+                satellite_fk,
+                collection_code,
+            } = taskedFarm;
 
             const today = new Date();
-            const endDate = new Date(taskedFarm.end_date.replace(" ", "T"));
-            const startDate = new Date(taskedFarm.start_date.replace(" ", "T"));
+            const endDate = new Date(end_date.replace(" ", "T"));
+            const startDate = new Date(start_date.replace(" ", "T"));
 
             const isTodayInRange = today >= startDate && today <= endDate;
 
-            if (
-                taskedFarm && // task exists
-                isTodayInRange && // check if today is in tasked dates range
-                taskedFarm.active && // task is active
-                taskedFarm.expand.farm_fk.active && // farm is active
-                taskedFarm.expand.satellite_fk.active // satellite is active
-            ) {
-                const { farm_fk, satellite_fk } = taskedFarm;
-                const { collection_code } = taskedFarm.expand.satellite_fk;
-
+            if (isTodayInRange) {
                 if (collection_code === "sentinel-2-l2a") {
                     const first_visit_date = await getS2FirstVisitDate(
                         taskedFarm
@@ -55,9 +52,7 @@ metadataRouter.get(
                         });
                 }
             } else {
-                throw new Error(
-                    "Farm/Tasking/Satellite inactive or today not in tasked dates."
-                );
+                throw new Error("Today not in tasked dates.");
             }
 
             return { message: `Metadata for ID ${id} fetched successfully.` };

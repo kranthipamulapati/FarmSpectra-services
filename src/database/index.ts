@@ -126,13 +126,17 @@ type FarmSatelliteDataExpand = FarmSatelliteData & {
     };
 };
 
-type FarmSatelliteTaskWithMetadata = Pick<Farm, "coordinates"> &
-    Pick<Satellite, "collection_code" | "revisit_time"> &
-    Pick<FarmSatelliteMetadata, "first_visit_date"> &
-    Pick<
-        FarmSatelliteTask,
-        "id" | "farm_fk" | "satellite_fk" | "end_date" | "start_date"
-    >;
+// view with task, farm & satellite active
+type FarmSatelliteTaskMetadata =
+    | ((Pick<Farm, "coordinates"> &
+          Pick<Satellite, "revisit_time" | "collection_code">) &
+          Pick<
+              FarmSatelliteTask,
+              "id" | "farm_fk" | "satellite_fk" | "end_date" | "start_date"
+          >) & {
+          first_visit_date: string | null;
+          satellite_start_date: string;
+      };
 
 const loginToDatabase = async () => {
     try {
@@ -160,7 +164,7 @@ export type {
     FarmSatelliteIndexImage,
     FarmSatelliteTaskExpand,
     FarmSatelliteDataExpand,
+    FarmSatelliteTaskMetadata,
     FarmSatelliteMetadataExpand,
-    FarmSatelliteTaskWithMetadata,
 };
 export { pocketbase, loginToDatabase };

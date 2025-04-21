@@ -10,9 +10,9 @@ import {
     sentinel_2_l2a_evalScript,
 } from "../../constants";
 
-import { convertCoordsToPolygon, getHeightAndWidthInPixels } from "../../utils";
+import type { Coordinate, FarmSatelliteTaskMetadata } from "../../database";
 
-import type { Coordinate, FarmSatelliteTaskExpand } from "../../database";
+import { convertCoordsToPolygon, getHeightAndWidthInPixels } from "../../utils";
 
 const getAccessToken = async () => {
     try {
@@ -32,18 +32,20 @@ const getAccessToken = async () => {
     }
 };
 
-const getS2FirstVisitDate = async (taskedFarm: FarmSatelliteTaskExpand) => {
+const getS2FirstVisitDate = async (taskedFarm: FarmSatelliteTaskMetadata) => {
     try {
         const {
+            coordinates,
             revisit_time,
             collection_code,
-            start_date: satelliteStartDate,
-        } = taskedFarm.expand.satellite_fk;
-        const { coordinates } = taskedFarm.expand.farm_fk;
+            satellite_start_date,
+        } = taskedFarm;
 
-        // set start, end dates as satellite first live date + revisit time period
-        const endDate = new Date(satelliteStartDate);
-        const startDate = new Date(satelliteStartDate);
+        // set start, end dates as satellite first live date + revisit time period,
+        // live date is hard coded in db as 00.00.00
+        // this gives 1st date 00.00.00 and 6th date 00.00.00, just after close of 5th day
+        const endDate = new Date(satellite_start_date);
+        const startDate = new Date(satellite_start_date);
         endDate.setDate(startDate.getDate() + revisit_time);
 
         const formattedEndDate = endDate.toISOString();

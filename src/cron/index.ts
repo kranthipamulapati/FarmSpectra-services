@@ -4,7 +4,7 @@ import { ClientResponseError } from "pocketbase";
 import {
     pocketbase,
     loginToDatabase,
-    type FarmSatelliteTaskWithMetadata,
+    type FarmSatelliteTaskMetadata,
 } from "../database";
 
 import { getUTCRange } from "../utils";
@@ -19,8 +19,10 @@ const getFarmsSatelliteDataCron = cron({
             await loginToDatabase();
 
             const taskedFarms = await pocketbase
-                .collection("farm_satellite_tasking_with_metadata_view")
-                .getFullList<FarmSatelliteTaskWithMetadata>();
+                .collection("farm_satellite_tasking_metadata_view")
+                .getFullList<FarmSatelliteTaskMetadata>({
+                    filter: "first_visit_date != null",
+                });
 
             if (taskedFarms.length) {
                 const token = await getAccessToken();
@@ -41,7 +43,7 @@ const getFarmsSatelliteDataCron = cron({
                     yesterday.setUTCHours(0, 0, 0, 0);
 
                     const firstVisitDate = new Date(
-                        first_visit_date.split(" ")[0]
+                        (first_visit_date || "").split(" ")[0]
                     );
 
                     const diffTime =
