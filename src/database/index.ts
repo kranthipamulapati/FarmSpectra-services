@@ -130,6 +130,14 @@ type FarmSatelliteDataExpand = FarmSatelliteData & {
     };
 };
 
+type FarmSatelliteTaskWithMetadata = Pick<Farm, "coordinates"> &
+    Pick<Satellite, "collection_code" | "revisit_time"> &
+    Pick<FarmSatelliteMetadata, "first_visit_date"> &
+    Pick<
+        FarmSatelliteTask,
+        "id" | "farm_fk" | "satellite_fk" | "end_date" | "start_date"
+    >;
+
 const loginToDatabase = async () => {
     try {
         if (pocketbaseUsername && pocketbasePassword) {
@@ -157,5 +165,6 @@ export type {
     FarmSatelliteTaskExpand,
     FarmSatelliteDataExpand,
     FarmSatelliteMetadataExpand,
+    FarmSatelliteTaskWithMetadata,
 };
 export { pocketbase, loginToDatabase };

@@ -95,7 +95,6 @@ dataRouter.get(
 
                         const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
 
-                        //@ts-ignore
                         await Bun.write(path, data);
 
                         await pocketbase
