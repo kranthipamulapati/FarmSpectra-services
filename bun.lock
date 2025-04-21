@@ -3,6 +3,7 @@
     "workspaces": {
         "": {
             "dependencies": {
+                "@elysiajs/cron": "1.2.0",
                 "@turf/turf": "7.2.0",
                 "axios": "1.8.4",
                 "elysia": "1.2.25",
@@ -16,6 +17,16 @@
         }
     },
     "packages": {
+        "@elysiajs/cron": [
+            "@elysiajs/cron@1.2.0",
+            "",
+            {
+                "dependencies": { "croner": "^6.0.3" },
+                "peerDependencies": { "elysia": ">= 1.2.0" }
+            },
+            "sha512-Xg2bUCZNEp2zRzsYeNQ6BUP3uslF5BEPnuLHLnsytiAEqzFTHzS7813XbmHs8xNZKuUAkAnJNTVnQb1Jt5zTwg=="
+        ],
+
         "@emnapi/runtime": [
             "@emnapi/runtime@1.4.0",
             "",
@@ -2281,6 +2292,13 @@
             "",
             {},
             "sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA=="
+        ],
+
+        "croner": [
+            "croner@6.0.7",
+            "",
+            {},
+            "sha512-k3Xx3Rcclfr60Yx4TmvsF3Yscuiql8LSvYLaphTsaq5Hk8La4Z/udmUANMOTKpgGGroI2F6/XOr9cU9OFkYluQ=="
         ],
 
         "d3-array": [
