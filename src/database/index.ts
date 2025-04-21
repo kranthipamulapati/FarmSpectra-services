@@ -1,10 +1,6 @@
 import PocketBase from "pocketbase";
 
-import {
-    apiBaseURL,
-    pocketbasePassword,
-    pocketbaseUsername,
-} from "../constants";
+import { apiBaseURL, databasePassword, databaseUsername } from "../constants";
 
 const pocketbase = new PocketBase(apiBaseURL);
 pocketbase.autoCancellation(false);
@@ -140,10 +136,10 @@ type FarmSatelliteTaskWithMetadata = Pick<Farm, "coordinates"> &
 
 const loginToDatabase = async () => {
     try {
-        if (pocketbaseUsername && pocketbasePassword) {
+        if (databaseUsername && databasePassword) {
             await pocketbase
                 .collection("_superusers")
-                .authWithPassword(pocketbaseUsername, pocketbasePassword);
+                .authWithPassword(databaseUsername, databasePassword);
         } else {
             throw new Error("Username or password not found.");
         }

@@ -1,15 +1,18 @@
-const client_id = process.env.ClientID;
-const client_secret = process.env.ClientSecret;
+const client_id = process.env.Client_ID;
+const client_secret = process.env.Client_Secret;
 
 const apiBaseURL = process.env.API_BASE_URL;
 
-const copernicusBaseUrl = process.env.copernicusBaseUrl;
-const copernicusAuthUrl = process.env.copernicusAuthUrl;
-const copernicusProcessUrl = process.env.copernicusProcessUrl;
-const copernicusCatalogUrl = process.env.copernicusCatalogUrl;
+const databaseUsername = process.env.Database_Admin_Username;
+const databasePassword = process.env.Database_Admin_Password;
 
-const pocketbaseUsername = process.env.Pocketbase_Admin_Username;
-const pocketbasePassword = process.env.Pocketbase_Admin_Password;
+const copernicusBaseUrl = "https://sh.dataspace.copernicus.eu";
+const copernicusProcessUrl =
+    "https://sh.dataspace.copernicus.eu/api/v1/process";
+const copernicusCatalogUrl =
+    "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search";
+const copernicusAuthUrl =
+    "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token";
 
 const sentinel_2_l2a_evalScript = `
         //VERSION=3
@@ -66,13 +69,13 @@ const sentinel_2_l2a_evalScript = `
     `;
 
 export {
-    client_id,
     apiBaseURL,
+    client_id,
     client_secret,
+    databaseUsername,
+    databasePassword,
     copernicusAuthUrl,
     copernicusBaseUrl,
-    pocketbaseUsername,
-    pocketbasePassword,
     copernicusCatalogUrl,
     copernicusProcessUrl,
     sentinel_2_l2a_evalScript,
