@@ -21,6 +21,7 @@ const getSatelliteVisitDates = (obj: SatelliteVisitParams): string[] => {
         if (current >= startDate) {
             dates.push(current.toISOString().split("T")[0]);
         }
+
         current.setUTCDate(current.getUTCDate() + revisit_time);
     }
 

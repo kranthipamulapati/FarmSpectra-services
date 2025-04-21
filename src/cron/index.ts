@@ -42,8 +42,8 @@ const getFarmsSatelliteDataCron = cron({
                     yesterday.setUTCDate(today.getUTCDate() - 1);
                     yesterday.setUTCHours(0, 0, 0, 0);
 
-                    const firstVisitDate = new Date(
-                        (first_visit_date || "").split(" ")[0]
+                    const firstVisitDate = new Date( //@ts-ignore
+                        first_visit_date.split(" ")[0]
                     );
 
                     const diffTime =
@@ -62,10 +62,10 @@ const getFarmsSatelliteDataCron = cron({
                             const date = startTime.split("T")[0];
 
                             const data = await getS2FarmVisitData({
+                                token,
                                 endTime,
                                 startTime,
                                 coordinates,
-                                token,
                             });
 
                             const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`;

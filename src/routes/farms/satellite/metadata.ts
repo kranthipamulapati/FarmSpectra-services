@@ -23,23 +23,12 @@ metadataRouter.get(
                 .collection("farm_satellite_tasking_metadata_view")
                 .getOne<FarmSatelliteTaskMetadata>(id);
 
-            const {
-                farm_fk,
-                end_date,
-                start_date,
-                satellite_fk,
-                collection_code,
-            } = taskedFarm;
+            const { farm_fk, satellite_fk, collection_code, first_visit_date } =
+                taskedFarm;
 
-            const today = new Date();
-            const endDate = new Date(end_date.replace(" ", "T"));
-            const startDate = new Date(start_date.replace(" ", "T"));
-
-            const isTodayInRange = today >= startDate && today <= endDate;
-
-            if (isTodayInRange) {
+            if (first_visit_date === "") {
                 if (collection_code === "sentinel-2-l2a") {
-                    const first_visit_date = await getS2FirstVisitDate(
+                    const firstVisitDate = await getS2FirstVisitDate(
                         taskedFarm
                     );
 
@@ -48,11 +37,11 @@ metadataRouter.get(
                         .create({
                             farm_fk,
                             satellite_fk,
-                            first_visit_date,
+                            first_visit_date: firstVisitDate,
                         });
                 }
             } else {
-                throw new Error("Today not in tasked dates.");
+                throw new Error("Metadata already exists.");
             }
 
             return { message: `Metadata for ID ${id} fetched successfully.` };

@@ -29,10 +29,6 @@ processRouter.get(
                     expand: "farm_fk, satellite_fk",
                 });
 
-            if (!tiffImage) {
-                throw new Error("ID does not exist.");
-            }
-
             const { farm_fk, tiff_path, visit_date, processed } = tiffImage;
 
             if (processed === false) {

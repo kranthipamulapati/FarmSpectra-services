@@ -4,8 +4,7 @@ import { ClientResponseError } from "pocketbase";
 import {
     pocketbase,
     loginToDatabase,
-    type FarmSatelliteTask,
-    type FarmSatelliteMetadataExpand,
+    type FarmSatelliteTaskMetadata,
 } from "../../../database";
 
 import {
@@ -20,43 +19,31 @@ import { getSatelliteVisitDates } from "../../../helpers";
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 
 dataRouter.get(
-    "/getPrevious/:id", // farm satellite metadata id
+    "/getPrevious/:id", // farm satellite task id
     async ({ set, params }) => {
         const { id } = params;
 
         try {
             await loginToDatabase();
 
-            const farmMetadata = await pocketbase
-                .collection("farm_satellite_metadata")
-                .getOne<FarmSatelliteMetadataExpand>(id, {
-                    expand: "farm_fk, satellite_fk",
-                });
-
-            if (!farmMetadata) {
-                throw new Error("Farm metadata not found");
-            }
+            const taskedFarm = await pocketbase
+                .collection("farm_satellite_tasking_metadata_view")
+                .getOne<FarmSatelliteTaskMetadata>(id);
 
             const {
+                farm_fk,
+                end_date,
+                start_date,
+                coordinates,
                 revisit_time,
+                satellite_fk,
                 collection_code,
-                active: satelliteActive,
-            } = farmMetadata.expand.satellite_fk;
-            const { active: farmActive, coordinates } =
-                farmMetadata.expand.farm_fk;
-            const { farm_fk, satellite_fk, first_visit_date } = farmMetadata;
+                first_visit_date,
+            } = taskedFarm;
 
-            const taskedFarm = await pocketbase
-                .collection("farm_satellite_tasking")
-                .getFirstListItem<FarmSatelliteTask>(
-                    `farm_fk = '${farm_fk}' && satellite_fk = '${satellite_fk}'`
-                );
-
-            if (!taskedFarm) {
-                throw new Error("Farm task not found");
+            if (first_visit_date === "") {
+                throw new Error("Metadata not found");
             }
-
-            const { start_date, end_date, active: taskActive } = taskedFarm;
 
             const today = new Date();
             const endDate = new Date(end_date.replace(" ", "T"));
@@ -64,12 +51,7 @@ dataRouter.get(
 
             const isTodayInRange = today >= startDate && today <= endDate;
 
-            if (
-                farmActive && // farm is active
-                taskActive && // task is active
-                isTodayInRange && // today is in task range
-                satelliteActive // satellite is active
-            ) {
+            if (isTodayInRange) {
                 const dates = getSatelliteVisitDates({
                     start_date,
                     revisit_time,
@@ -87,10 +69,10 @@ dataRouter.get(
                         const date = startTime.split("T")[0];
 
                         const data = await getS2FarmVisitData({
+                            token,
                             endTime,
                             startTime,
                             coordinates,
-                            token,
                         });
 
                         const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
@@ -108,7 +90,7 @@ dataRouter.get(
                     }
                 }
 
-                return "previous data extraction success";
+                return "previous data extraction success.";
             } else {
                 throw new Error(
                     "Farm/Task/Satellite inactive or today not in task range."

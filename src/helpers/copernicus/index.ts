@@ -41,9 +41,9 @@ const getS2FirstVisitDate = async (taskedFarm: FarmSatelliteTaskMetadata) => {
             satellite_start_date,
         } = taskedFarm;
 
-        // set start, end dates as satellite first live date + revisit time period,
-        // live date is hard coded in db as 00.00.00
-        // this gives 1st date 00.00.00 and 6th date 00.00.00, just after close of 5th day
+        // set start, end dates as satellite first live date + revisit time period, so satellite should visit once in this cycle
+        // live date is hard coded in db as 00.00.00, so ISO is fine
+        // this gives 1st date 00.00.00 and 6th date 00.00.00, just after close of revisit day cycle
         const endDate = new Date(satellite_start_date);
         const startDate = new Date(satellite_start_date);
         endDate.setDate(startDate.getDate() + revisit_time);

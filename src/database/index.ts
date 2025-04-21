@@ -134,7 +134,7 @@ type FarmSatelliteTaskMetadata =
               FarmSatelliteTask,
               "id" | "farm_fk" | "satellite_fk" | "end_date" | "start_date"
           >) & {
-          first_visit_date: string | null;
+          first_visit_date: string;
           satellite_start_date: string;
       };
 
