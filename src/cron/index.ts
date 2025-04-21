@@ -21,7 +21,7 @@ const getFarmsSatelliteDataCron = cron({
             const taskedFarms = await pocketbase
                 .collection("farm_satellite_tasking_metadata_view")
                 .getFullList<FarmSatelliteTaskMetadata>({
-                    filter: "first_visit_date != null",
+                    filter: "first_visit_date != ''",
                 });
 
             if (taskedFarms.length) {
