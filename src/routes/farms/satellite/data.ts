@@ -18,8 +18,13 @@ import { getSatelliteVisitDates } from "../../../helpers";
 
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 
+// get previous days data when ever a farm is assigned a satellite for tasking
+// for example is farm is tasked from Mar 1st to May 31st & todays date is April 15th, then get data from March 1st to April 14th
+// metadata includes first_visit_date, so if first_visit_date is empty, it has to be skipped
+// @param - id - string - farm satellite task id
+
 dataRouter.get(
-    "/getPrevious/:id", // farm satellite task id
+    "/getPrevious/:id",
     async ({ set, params }) => {
         const { id } = params;
 
@@ -42,60 +47,47 @@ dataRouter.get(
             } = taskedFarm;
 
             if (first_visit_date === "") {
-                throw new Error("Metadata not found");
+                throw new Error("Metadata not found.");
             }
 
-            const today = new Date();
-            const endDate = new Date(end_date.replace(" ", "T"));
-            const startDate = new Date(start_date.replace(" ", "T"));
+            const dates = getSatelliteVisitDates({
+                end_date,
+                start_date,
+                revisit_time,
+                first_visit_date,
+            });
 
-            const isTodayInRange = today >= startDate && today <= endDate;
+            if (collection_code === "sentinel-2-l2a") {
+                const token = await getAccessToken();
 
-            if (isTodayInRange) {
-                const dates = getSatelliteVisitDates({
-                    start_date,
-                    revisit_time,
-                    first_visit_date,
-                });
+                for (let i = 0; i < dates.length; i++) {
+                    const { endTime, startTime } = getUTCRange(
+                        new Date(dates[i])
+                    );
 
-                if (collection_code === "sentinel-2-l2a") {
-                    const token = await getAccessToken();
+                    const date = startTime.split("T")[0];
 
-                    for (let i = 0; i < dates.length; i++) {
-                        const { endTime, startTime } = getUTCRange(
-                            new Date(dates[i])
-                        );
+                    const data = await getS2FarmVisitData({
+                        token,
+                        endTime,
+                        startTime,
+                        coordinates,
+                    });
 
-                        const date = startTime.split("T")[0];
+                    const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
 
-                        const data = await getS2FarmVisitData({
-                            token,
-                            endTime,
-                            startTime,
-                            coordinates,
-                        });
+                    await Bun.write(path, data);
 
-                        const path = `./images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
-
-                        await Bun.write(path, data);
-
-                        await pocketbase
-                            .collection("farm_satellite_data")
-                            .create({
-                                farm_fk,
-                                satellite_fk,
-                                tiff_path: path,
-                                visit_date: startTime,
-                            });
-                    }
+                    await pocketbase.collection("farm_satellite_data").create({
+                        farm_fk,
+                        satellite_fk,
+                        tiff_path: path,
+                        visit_date: startTime,
+                    });
                 }
-
-                return "previous data extraction success.";
-            } else {
-                throw new Error(
-                    "Farm/Task/Satellite inactive or today not in task range."
-                );
             }
+
+            return "previous data extraction success.";
         } catch (error) {
             set.status = 400;
 

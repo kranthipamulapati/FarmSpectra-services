@@ -11,8 +11,12 @@ import { getS2FirstVisitDate } from "../../../helpers/copernicus";
 
 const metadataRouter = new Elysia({ prefix: "/farms/satellite/metadata" });
 
+// get metadata when ever a farm is assigned a satellite for tasking
+// metadata includes first_visit_date, so if first_visit_date has value, it has to be skipped
+// @param - id - string - farm satellite task id
+
 metadataRouter.get(
-    "/get/:id", // farm satellite task id
+    "/get/:id",
     async ({ set, params }) => {
         const { id } = params;
 
