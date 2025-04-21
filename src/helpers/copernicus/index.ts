@@ -180,7 +180,7 @@ const processS2Tiff = async (
     tiffImage: FarmSatelliteDataExpand
 ) => {
     try {
-        const { farm_fk, visit_date, tiff_path } = tiffImage;
+        const { farm_fk, visit_date } = tiffImage;
         const { id: satId, collection_code } = tiffImage.expand.satellite_fk;
 
         const satelliteIndices = await pocketbase
@@ -196,7 +196,9 @@ const processS2Tiff = async (
 
         if (indices.length) {
             const date = visit_date.split(" ")[0];
-            const tiff = await fromFile(tiff_path);
+            const tiff = await fromFile(
+                `${publicFolder}/images/${farm_fk}/${date}/${collection_code}/tiff.tif`
+            );
             const image = await tiff.getImage();
             const rasters = await image.readRasters();
 
@@ -404,7 +406,7 @@ const processS2Tiff = async (
                         .create({
                             tiff_fk: id,
                             index_fk: satelliteIndices[i].index_fk,
-                            image_url: `https://database.farmspectra.com/public/images/${farm_fk}/${date}/${collection_code}/${satelliteIndex}.png`,
+                            image_url: `https://database.farmspectra.com/images/${farm_fk}/${date}/${collection_code}/${satelliteIndex}.png`,
                         });
                 })
             );

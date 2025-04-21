@@ -95,7 +95,6 @@ async function generateColorMapImage({
     data: Float32Array;
     colorMatrix: { min: number | null; max: number | null; hex: string }[];
 }) {
-    //@ts-ignore
     const rgbData = Buffer.alloc(width * height * 3);
 
     for (let i = 0; i < data.length; i++) {
@@ -120,16 +119,20 @@ async function generateColorMapImage({
         rgbData[i * 3 + 2] = b;
     }
 
-    await sharp(rgbData, {
-        raw: { width, height, channels: 3 },
-    })
-        .resize({
-            width: 256,
-            height: 256,
-            kernel: sharp.kernel.nearest,
+    try {
+        await sharp(rgbData, {
+            raw: { width, height, channels: 3 },
         })
-        .png()
-        .toFile(filePath);
+            .resize({
+                width: 256,
+                height: 256,
+                kernel: sharp.kernel.nearest,
+            })
+            .png()
+            .toFile(filePath);
+    } catch (error: unknown) {
+        throw error;
+    }
 }
 
 function calculateAverage(arr: Float32Array) {

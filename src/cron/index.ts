@@ -80,7 +80,7 @@ const getFarmsSatelliteDataCron = cron({
                                     farm_fk,
                                     satellite_fk,
                                     visit_date: startTime,
-                                    tiff_path: `https://database.farmspectra.com/public/images/${farm_fk}/${date}/${collection_code}/tiff.tif`,
+                                    tiff_path: `https://database.farmspectra.com/images/${farm_fk}/${date}/${collection_code}/tiff.tif`,
                                 });
                         }
                     }
