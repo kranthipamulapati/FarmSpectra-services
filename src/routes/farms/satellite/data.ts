@@ -38,6 +38,7 @@ dataRouter.get(
                 .getOne<FarmSatelliteTaskMetadata>(id);
 
             const {
+                code,
                 farm_fk,
                 end_date,
                 start_date,
@@ -76,7 +77,7 @@ dataRouter.get(
                         coordinates,
                     });
 
-                    const path = `${publicFolder}/images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
+                    const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
 
                     await Bun.write(path, data);
 
@@ -84,7 +85,7 @@ dataRouter.get(
                         farm_fk,
                         satellite_fk,
                         visit_date: startTime,
-                        tiff_path: `https://database.farmspectra.com/images/${farm_fk}/${date}/${collection_code}/tiff.tif`,
+                        tiff_path: `https://database.farmspectra.com/images/${farm_fk}/${date}/${code}/tiff.tif`,
                     });
                 }
             }

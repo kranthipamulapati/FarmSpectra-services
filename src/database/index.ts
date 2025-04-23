@@ -129,7 +129,7 @@ type FarmSatelliteDataExpand = FarmSatelliteData & {
 // view with task, farm & satellite active
 type FarmSatelliteTaskMetadata =
     | ((Pick<Farm, "coordinates"> &
-          Pick<Satellite, "revisit_time" | "collection_code">) &
+          Pick<Satellite, "revisit_time" | "collection_code" | "code">) &
           Pick<
               FarmSatelliteTask,
               "id" | "farm_fk" | "satellite_fk" | "end_date" | "start_date"

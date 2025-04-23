@@ -181,7 +181,7 @@ const processS2Tiff = async (
 ) => {
     try {
         const { farm_fk, visit_date } = tiffImage;
-        const { id: satId, collection_code } = tiffImage.expand.satellite_fk;
+        const { code, id: satId } = tiffImage.expand.satellite_fk;
 
         const satelliteIndices = await pocketbase
             .collection("satellite_indices")
@@ -197,7 +197,7 @@ const processS2Tiff = async (
         if (indices.length) {
             const date = visit_date.split(" ")[0];
             const tiff = await fromFile(
-                `${publicFolder}/images/${farm_fk}/${date}/${collection_code}/tiff.tif`
+                `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`
             );
             const image = await tiff.getImage();
             const rasters = await image.readRasters();
@@ -385,7 +385,7 @@ const processS2Tiff = async (
                 }
             }
 
-            const basePath = `${publicFolder}/images/${farm_fk}/${date}/${collection_code}`;
+            const basePath = `${publicFolder}/images/${farm_fk}/${date}/${code}`;
 
             await Promise.all(
                 indices.map((satelliteIndex, i) => {
@@ -406,7 +406,7 @@ const processS2Tiff = async (
                         .create({
                             tiff_fk: id,
                             index_fk: satelliteIndices[i].index_fk,
-                            image_url: `https://database.farmspectra.com/images/${farm_fk}/${date}/${collection_code}/${satelliteIndex}.png`,
+                            image_url: `https://database.farmspectra.com/images/${farm_fk}/${date}/${code}/${satelliteIndex}.png`,
                         });
                 })
             );

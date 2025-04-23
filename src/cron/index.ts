@@ -31,6 +31,7 @@ const getFarmsSatelliteDataCron = cron({
 
                 for (let i = 0; i < taskedFarms.length; i++) {
                     const {
+                        code,
                         farm_fk,
                         satellite_fk,
                         coordinates,
@@ -70,7 +71,7 @@ const getFarmsSatelliteDataCron = cron({
                                 coordinates,
                             });
 
-                            const path = `${publicFolder}/images/${farm_fk}/${date}/${collection_code}/tiff.tif`;
+                            const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
 
                             await Bun.write(path, data);
 
@@ -80,7 +81,7 @@ const getFarmsSatelliteDataCron = cron({
                                     farm_fk,
                                     satellite_fk,
                                     visit_date: startTime,
-                                    tiff_path: `https://database.farmspectra.com/images/${farm_fk}/${date}/${collection_code}/tiff.tif`,
+                                    tiff_path: `https://database.farmspectra.com/images/${farm_fk}/${date}/${code}/tiff.tif`,
                                 });
                         }
                     }
