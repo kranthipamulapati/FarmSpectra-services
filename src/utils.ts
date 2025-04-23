@@ -95,15 +95,25 @@ async function generateColorMapImage({
     data: Float32Array;
     colorMatrix: { min: number | null; max: number | null; hex: string }[];
 }) {
-    const rgbData = Buffer.alloc(width * height * 3);
+    const rgbaData = Buffer.alloc(width * height * 4);
 
     for (let i = 0; i < data.length; i++) {
         const value = data[i];
+
+        if (value === 0) {
+            // Transparent pixel
+            rgbaData[i * 4] = 0;
+            rgbaData[i * 4 + 1] = 0;
+            rgbaData[i * 4 + 2] = 0;
+            rgbaData[i * 4 + 3] = 0;
+            continue;
+        }
 
         let colorHex = "#000000";
         for (const range of colorMatrix) {
             const withinMin = range.min === null || value >= range.min;
             const withinMax = range.max === null || value < range.max;
+
             if (withinMin && withinMax) {
                 colorHex = range.hex;
                 break;
@@ -114,14 +124,15 @@ async function generateColorMapImage({
         const g = parseInt(colorHex.slice(3, 5), 16);
         const b = parseInt(colorHex.slice(5, 7), 16);
 
-        rgbData[i * 3] = r;
-        rgbData[i * 3 + 1] = g;
-        rgbData[i * 3 + 2] = b;
+        rgbaData[i * 4] = r;
+        rgbaData[i * 4 + 1] = g;
+        rgbaData[i * 4 + 2] = b;
+        rgbaData[i * 4 + 3] = 255; // opaque
     }
 
     try {
-        await sharp(rgbData, {
-            raw: { width, height, channels: 3 },
+        await sharp(rgbaData, {
+            raw: { width, height, channels: 4 },
         })
             .resize({
                 width: 256,

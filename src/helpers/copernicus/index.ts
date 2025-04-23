@@ -148,8 +148,8 @@ const getS2FarmVisitData = async ({
                 ],
             },
             output: {
-                width,
-                height,
+                width: 256,
+                height: 256,
                 responses: [
                     {
                         identifier: "default",
