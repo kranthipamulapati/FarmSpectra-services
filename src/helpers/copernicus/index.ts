@@ -2,6 +2,7 @@ import axios from "axios";
 import { fromFile, type TypedArray } from "geotiff";
 
 import {
+    imagesURL,
     client_id,
     client_secret,
     publicFolder,
@@ -406,7 +407,7 @@ const processS2Tiff = async (
                         .create({
                             tiff_fk: id,
                             index_fk: satelliteIndices[i].index_fk,
-                            image_url: `https://database.farmspectra.com/images/${farm_fk}/${date}/${code}/${satelliteIndex}.png`,
+                            image_url: `${imagesURL}/${farm_fk}/${date}/${code}/${satelliteIndex}.png`,
                         });
                 })
             );

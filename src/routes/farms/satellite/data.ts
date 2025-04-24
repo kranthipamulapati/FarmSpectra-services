@@ -14,7 +14,7 @@ import {
 
 import { getUTCRange } from "../../../utils";
 
-import { publicFolder } from "../../../constants";
+import { imagesURL, publicFolder } from "../../../constants";
 
 import { getSatelliteVisitDates } from "../../../helpers";
 
@@ -85,7 +85,7 @@ dataRouter.get(
                         farm_fk,
                         satellite_fk,
                         visit_date: startTime,
-                        tiff_path: `https://database.farmspectra.com/images/${farm_fk}/${date}/${code}/tiff.tif`,
+                        tiff_path: `${imagesURL}/${farm_fk}/${date}/${code}/tiff.tif`,
                     });
                 }
             }

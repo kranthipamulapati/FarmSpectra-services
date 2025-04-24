@@ -1,8 +1,9 @@
 const client_id = process.env.Client_ID;
 const client_secret = process.env.Client_Secret;
 
+const imagesURL = process.env.IMAGES_URL;
 const apiBaseURL = process.env.API_BASE_URL;
-const publicFolder = process.env.public_folder;
+const publicFolder = process.env.Public_Folder;
 
 const databaseUsername = process.env.Database_Admin_Username;
 const databasePassword = process.env.Database_Admin_Password;
@@ -70,6 +71,7 @@ const sentinel_2_l2a_evalScript = `
     `;
 
 export {
+    imagesURL,
     apiBaseURL,
     client_id,
     client_secret,
