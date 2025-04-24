@@ -1,4 +1,5 @@
 import axios from "axios";
+import sharp from "sharp";
 import { fromFile, type TypedArray } from "geotiff";
 
 import {
@@ -299,6 +300,9 @@ async function downloadImage() {
 
 //downloadImage();
 
+const scale = (value: number) =>
+    Math.min(255, Math.max(0, (value / 10000) * 255));
+
 const processTiff = async () => {
     try {
         const tiff = await fromFile(`./planet_image.tiff`);
@@ -314,6 +318,28 @@ const processTiff = async () => {
         const nirBand = rasters[3] as TypedArray;
 
         const ndviData = new Float32Array(width * height);
+
+        const rgbBuffer = Buffer.alloc(width * height * 3);
+
+        for (let i = 0; i < width * height; i++) {
+            rgbBuffer[i * 3 + 0] = scale(redBand[i]); // Red
+            rgbBuffer[i * 3 + 2] = scale(blueBand[i]); // Blue
+            rgbBuffer[i * 3 + 1] = scale(greenBand[i]); // Green
+        }
+
+        await sharp(rgbBuffer, {
+            raw: {
+                width,
+                height,
+                channels: 3,
+            },
+        })
+            .modulate({
+                brightness: 5, // Brighten
+                saturation: 5, // Slight color boost
+            })
+            .png()
+            .toFile("planet_image_rgb.png");
 
         for (let i = 0; i < height * width; i++) {
             const nir = nirBand[i];
