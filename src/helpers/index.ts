@@ -12,9 +12,9 @@ const getSatelliteVisitDates = (obj: SatelliteVisitParams): string[] => {
     const yesterday = new Date(today);
     yesterday.setUTCDate(today.getUTCDate() - 1);
 
+    const endDate = new Date(end_date.split(" ")[0]);
     const startDate = new Date(start_date.split(" ")[0]);
     const firstVisitDate = new Date(first_visit_date.split(" ")[0]);
-    const endDate = new Date(end_date.split(" ")[0]);
 
     const limitDate = endDate < yesterday ? endDate : yesterday;
 

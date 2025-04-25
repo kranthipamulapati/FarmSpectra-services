@@ -10,6 +10,7 @@ import {
 import {
     getAccessToken,
     getS2FarmVisitData,
+    getS2FirstVisitDate,
 } from "../../../helpers/copernicus";
 
 import { getUTCRange } from "../../../utils";
@@ -28,7 +29,7 @@ const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 dataRouter.get(
     "/getPrevious/:id",
     async ({ set, params }) => {
-        const { id } = params;
+        const { id } = params; // task id
 
         try {
             await loginToDatabase();
@@ -38,26 +39,40 @@ dataRouter.get(
                 .getOne<FarmSatelliteTaskMetadata>(id);
 
             const {
-                code,
                 farm_fk,
-                end_date,
-                start_date,
                 coordinates,
-                revisit_time,
+
+                end_date, // task end date
+                start_date, // task start date
+
                 satellite_fk,
+                code, // satellite code
+                revisit_time,
                 collection_code,
-                first_visit_date,
             } = taskedFarm;
 
-            if (first_visit_date === "") {
-                throw new Error("Metadata not found.");
+            // check if first_visit_date exists, if not, get
+            if (taskedFarm.first_visit_date === "") {
+                if (collection_code === "sentinel-2-l2a") {
+                    taskedFarm.first_visit_date = await getS2FirstVisitDate(
+                        taskedFarm
+                    );
+
+                    await pocketbase
+                        .collection("farm_satellite_metadata")
+                        .create({
+                            farm_fk,
+                            satellite_fk,
+                            first_visit_date: taskedFarm.first_visit_date,
+                        });
+                }
             }
 
             const dates = getSatelliteVisitDates({
                 end_date,
                 start_date,
                 revisit_time,
-                first_visit_date,
+                first_visit_date: taskedFarm.first_visit_date,
             });
 
             if (collection_code === "sentinel-2-l2a") {
@@ -90,7 +105,7 @@ dataRouter.get(
                 }
             }
 
-            return "previous data extraction success.";
+            return "success";
         } catch (error) {
             set.status = 400;
 
