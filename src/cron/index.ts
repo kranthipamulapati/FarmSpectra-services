@@ -15,7 +15,7 @@ import { getAccessToken, getS2FarmVisitData } from "../helpers/copernicus";
 
 const getFarmsSatelliteDataCron = cron({
     name: "getFarmsSatelliteData",
-    pattern: Patterns.EVERY_DAY_AT_2AM,
+    pattern: Patterns.EVERY_DAY_AT_1AM,
     run: async () => {
         try {
             await loginToDatabase();

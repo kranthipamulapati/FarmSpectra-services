@@ -105,7 +105,9 @@ dataRouter.get(
                 }
             }
 
-            return "success";
+            return {
+                message: `Previous data for ID ${id} fetched successfully.`,
+            };
         } catch (error) {
             set.status = 400;
 
