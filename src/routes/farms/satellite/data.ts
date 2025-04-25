@@ -75,7 +75,7 @@ dataRouter.get(
                 first_visit_date: taskedFarm.first_visit_date,
             });
 
-            if (collection_code === "sentinel-2-l2a") {
+            if (dates.length > 0 && collection_code === "sentinel-2-l2a") {
                 const token = await getAccessToken();
 
                 for (let i = 0; i < dates.length; i++) {
