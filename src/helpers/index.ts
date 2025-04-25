@@ -9,8 +9,13 @@ const getSatelliteVisitDates = (obj: SatelliteVisitParams): string[] => {
     const { end_date, start_date, revisit_time, first_visit_date } = obj;
 
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setUTCDate(today.getUTCDate() - 1);
+    const yesterday = new Date(
+        Date.UTC(
+            today.getUTCFullYear(),
+            today.getUTCMonth(),
+            today.getUTCDate() - 1
+        )
+    );
 
     const endDate = new Date(end_date.split(" ")[0]);
     const startDate = new Date(start_date.split(" ")[0]);
