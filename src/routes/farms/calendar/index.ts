@@ -18,7 +18,7 @@ calendarRouter.post(
         try {
             const { id, farm_fk, sowing_date, harvesting_date } = body;
 
-            if (sowing_date > harvesting_date) {
+            if (normalizeDate(sowing_date) > normalizeDate(harvesting_date)) {
                 throw new Error(
                     "Sowing date must be before or equal to harvesting date."
                 );
