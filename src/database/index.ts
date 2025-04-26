@@ -99,6 +99,24 @@ type SatelliteIndex = {
     updated: Date;
 };
 
+type FarmCalender = {
+    id: string;
+    farm_fk: string;
+    crop_fk: string;
+    sowing_date: Date;
+    harvesting_date: Date;
+    growth_stage_fk: string;
+    irrigation_method_fk: string;
+    tillage_type_fk: string;
+    season_fk: string;
+    yield: number;
+    target_yield: number;
+    estimated_yield: number;
+    created: Date;
+    update: Date;
+    active: boolean;
+};
+
 type SatelliteIndexExpand = SatelliteIndex & {
     expand: {
         index_fk: Index;
@@ -157,6 +175,7 @@ export type {
     Index,
     Satellite,
     Coordinate,
+    FarmCalender,
     SatelliteIndex,
     FarmSatelliteTask,
     SatelliteIndexExpand,
