@@ -416,10 +416,12 @@ const processS2Tiff = async (
             const cloudCoverageSCL = calculateAverage(data.SCL) * 100; // Convert to percentage
             const cloudCoverageCLD = calculateAverage(data.CLD) * 100; // Convert to percentage
 
-            await pocketbase.collection("farm_satellite_data").update(id, {
-                processed: true,
-                cloud_cover: cloudCoverageSCL,
-            });
+            await pocketbase
+                .collection("farm_satellite_visit_data")
+                .update(id, {
+                    processed: true,
+                    cloud_cover: cloudCoverageSCL,
+                });
 
             return "success";
         } else {

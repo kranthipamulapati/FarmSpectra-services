@@ -96,12 +96,14 @@ dataRouter.get(
 
                     await Bun.write(path, data);
 
-                    await pocketbase.collection("farm_satellite_data").create({
-                        farm_fk,
-                        satellite_fk,
-                        visit_date: startTime,
-                        tiff_path: `${imagesURL}/${farm_fk}/${date}/${code}/tiff.tif`,
-                    });
+                    await pocketbase
+                        .collection("farm_satellite_visit_data")
+                        .create({
+                            farm_fk,
+                            satellite_fk,
+                            visit_date: startTime,
+                            tiff_path: `${imagesURL}/${farm_fk}/${date}/${code}/tiff.tif`,
+                        });
                 }
             }
 

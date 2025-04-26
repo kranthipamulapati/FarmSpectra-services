@@ -24,7 +24,7 @@ processRouter.get(
             await loginToDatabase();
 
             const tiffImage = await pocketbase
-                .collection("farm_satellite_data")
+                .collection("farm_satellite_visit_data")
                 .getOne<FarmSatelliteDataExpand>(id, {
                     expand: "farm_fk, satellite_fk",
                 });

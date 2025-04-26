@@ -76,7 +76,7 @@ const getFarmsSatelliteDataCron = cron({
                             await Bun.write(path, data);
 
                             await pocketbase
-                                .collection("farm_satellite_data")
+                                .collection("farm_satellite_visit_data")
                                 .create({
                                     farm_fk,
                                     satellite_fk,
