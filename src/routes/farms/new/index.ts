@@ -23,7 +23,7 @@ newFarmRouter.post(
                 throw new Error("Polygon not closed or too short.");
             }
 
-            // Lat/lng bounds check (before expensive GIS logic)
+            // Lat/lng bounds check
             const allCoordsValid = body.coordinates.every(
                 ({ lat, lng }) =>
                     lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
@@ -55,7 +55,7 @@ newFarmRouter.post(
             }
 
             return {
-                area: actualArea,
+                area: Number(actualArea.toFixed(0)),
                 isPolygonValid: true,
                 message: "Polygon is valid.",
             };
