@@ -42,14 +42,23 @@ newFarmRouter.post(
             }
 
             // Area check (max 250 hectares)
-            const maxArea = 2_500_000; // in square meters
+            const minArea = 100; // in square meters
+            const maxArea = 2500000; // in square meters
             const actualArea = area(turfPoly);
+
+            if (actualArea < minArea) {
+                throw new Error("Polygon is too small.");
+            }
 
             if (actualArea > maxArea) {
                 throw new Error("Polygon is too large.");
             }
 
-            return { isPolygonValid: true, message: "Polygon is valid." };
+            return {
+                area: actualArea,
+                isPolygonValid: true,
+                message: "Polygon is valid.",
+            };
         } catch (error) {
             set.status = 400;
 
