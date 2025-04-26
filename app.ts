@@ -4,11 +4,13 @@ const app = new Elysia();
 
 import { getFarmsSatelliteDataCron } from "./src/cron/index.ts";
 
+import { newFarmRouter } from "./src/routes/farms/new";
 import { dataRouter } from "./src/routes/farms/satellite/data";
 import { processRouter } from "./src/routes/farms/satellite/process";
 import { metadataRouter } from "./src/routes/farms/satellite/metadata";
 
 app.use(dataRouter);
+app.use(newFarmRouter);
 app.use(processRouter);
 app.use(metadataRouter);
 
