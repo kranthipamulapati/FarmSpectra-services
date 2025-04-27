@@ -17,8 +17,8 @@ import {
     pocketbase,
     SatelliteIndexExpand,
     type Coordinate,
-    type FarmSatelliteDataExpand,
     type FarmSatelliteTaskMetadata,
+    type FarmSatelliteVisitDataExpand,
 } from "../../database";
 
 import {
@@ -178,7 +178,7 @@ const getS2FarmVisitData = async ({
 
 const processS2Tiff = async (
     id: string,
-    tiffImage: FarmSatelliteDataExpand
+    tiffImage: FarmSatelliteVisitDataExpand
 ) => {
     try {
         const { farm_fk, visit_date } = tiffImage;
@@ -405,7 +405,7 @@ const processS2Tiff = async (
                     return pocketbase
                         .collection("farm_satellite_index_images")
                         .create({
-                            tiff_fk: id,
+                            visit_fk: id,
                             index_fk: satelliteIndices[i].index_fk,
                             image_url: `${imagesURL}/${farm_fk}/${date}/${code}/${satelliteIndex}.png`,
                         });

@@ -4,7 +4,7 @@ import { ClientResponseError } from "pocketbase";
 import {
     pocketbase,
     loginToDatabase,
-    type FarmSatelliteDataExpand,
+    type FarmSatelliteVisitDataExpand,
 } from "../../../database";
 
 import { processS2Tiff } from "../../../helpers/copernicus";
@@ -25,7 +25,7 @@ processRouter.get(
 
             const tiffImage = await pocketbase
                 .collection("farm_satellite_visit_data")
-                .getOne<FarmSatelliteDataExpand>(id, {
+                .getOne<FarmSatelliteVisitDataExpand>(id, {
                     expand: "farm_fk, satellite_fk",
                 });
 

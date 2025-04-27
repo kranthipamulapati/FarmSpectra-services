@@ -55,7 +55,7 @@ type FarmSatelliteMetadata = {
     updated: Date;
 };
 
-type FarmSatelliteData = {
+type FarmSatelliteVisitData = {
     id: string;
     farm_fk: string;
     satellite_fk: string;
@@ -69,7 +69,7 @@ type FarmSatelliteData = {
 
 type FarmSatelliteIndexImage = {
     id: string;
-    tiff_fk: string;
+    visit_fk: string;
     index_fk: string;
     image_url: string;
     created: Date;
@@ -137,7 +137,7 @@ type FarmSatelliteMetadataExpand = FarmSatelliteMetadata & {
     };
 };
 
-type FarmSatelliteDataExpand = FarmSatelliteData & {
+type FarmSatelliteVisitDataExpand = FarmSatelliteVisitData & {
     expand: {
         farm_fk: Farm;
         satellite_fk: Satellite;
@@ -182,7 +182,7 @@ export type {
     FarmSatelliteMetadata,
     FarmSatelliteIndexImage,
     FarmSatelliteTaskExpand,
-    FarmSatelliteDataExpand,
+    FarmSatelliteVisitDataExpand,
     FarmSatelliteTaskMetadata,
     FarmSatelliteMetadataExpand,
 };
