@@ -1,4 +1,5 @@
 import { Elysia } from "elysia";
+import { swagger } from "@elysiajs/swagger";
 
 const app = new Elysia();
 
@@ -11,6 +12,7 @@ import { taskRouter } from "./src/routes/farms/satellite/task.ts";
 import { processRouter } from "./src/routes/farms/satellite/process";
 import { metadataRouter } from "./src/routes/farms/satellite/metadata";
 
+app.use(swagger());
 app.use(dataRouter);
 app.use(taskRouter);
 app.use(newFarmRouter);
