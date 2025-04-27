@@ -109,9 +109,9 @@ type FarmCalender = {
     irrigation_method_fk: string;
     tillage_type_fk: string;
     season_fk: string;
-    yield: number;
-    target_yield: number;
-    estimated_yield: number;
+    yield_in_kgha: number;
+    target_yield_in_kgha: number;
+    estimated_yield_in_kgha: number;
     created: Date;
     update: Date;
     active: boolean;
