@@ -18,8 +18,6 @@ taskRouter.post(
         try {
             const { id, farm_fk, satellite_fk, start_date, end_date } = body;
 
-            console.log({ id, farm_fk, satellite_fk, start_date, end_date });
-
             if (normalizeDate(start_date) > normalizeDate(end_date)) {
                 throw new Error(
                     "Start date must be before or equal to end date."

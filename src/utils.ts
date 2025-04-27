@@ -51,8 +51,6 @@ const convertCoordsToPolygon = (coordinates: Array<Coordinate>) => {
         coord.lat,
     ]);
 
-    transformedCoordinates.push([coordinates[0].lng, coordinates[0].lat]);
-
     return transformedCoordinates;
 };
 
