@@ -174,7 +174,10 @@ const color_matrix = [
 ];
 
 const transformedCoordinates = convertCoordsToPolygon(coordinates);
-const { height, width } = getHeightAndWidthInPixels(transformedCoordinates);
+const { height, width } = getHeightAndWidthInPixels({
+    resolution: 3,
+    transformedCoordinates,
+});
 
 const evalscript = `
     //VERSION=3

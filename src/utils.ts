@@ -54,9 +54,13 @@ const convertCoordsToPolygon = (coordinates: Array<Coordinate>) => {
     return transformedCoordinates;
 };
 
-const getHeightAndWidthInPixels = (
-    transformedCoordinates: Array<Array<number>>
-) => {
+const getHeightAndWidthInPixels = ({
+    resolution,
+    transformedCoordinates,
+}: {
+    resolution: number;
+    transformedCoordinates: Array<Array<number>>;
+}) => {
     const BBOX = bbox({
         type: "Feature",
         properties: {},
@@ -66,18 +70,19 @@ const getHeightAndWidthInPixels = (
         },
     });
 
-    const averageLatitude = (BBOX[1] + BBOX[3]) / 2;
-    const widthMeters =
-        Math.abs(BBOX[2] - BBOX[0]) *
-        111320 *
-        Math.cos((averageLatitude * Math.PI) / 180);
-    const heightMeters = Math.abs(BBOX[3] - BBOX[1]) * 111132;
+    const [minLon, minLat, maxLon, maxLat] = BBOX;
 
-    const resolution = 10; // 10 meters per pixel
+    const avgLat = (minLat + maxLat) / 2;
+    const metersPerDegreeLon = 111320 * Math.cos((avgLat * Math.PI) / 180);
+    const metersPerDegreeLat = 110574;
+
+    const widthMeters = Math.abs(maxLon - minLon) * metersPerDegreeLon;
+    const heightMeters = Math.abs(maxLat - minLat) * metersPerDegreeLat;
+
     const width = Math.round(widthMeters / resolution);
     const height = Math.round(heightMeters / resolution);
 
-    return { width, height };
+    return { width, height, BBOX };
 };
 
 async function generateColorMapImage({

@@ -117,9 +117,10 @@ const getS2FarmVisitData = async ({
 }) => {
     try {
         const transformedCoordinates = convertCoordsToPolygon(coordinates);
-        const { height, width } = getHeightAndWidthInPixels(
-            transformedCoordinates
-        );
+        const { height, width, BBOX } = getHeightAndWidthInPixels({
+            resolution: 10,
+            transformedCoordinates,
+        });
 
         const request = {
             input: {
@@ -170,7 +171,10 @@ const getS2FarmVisitData = async ({
             responseType: "arraybuffer",
         });
 
-        return response.data;
+        return {
+            bbox: BBOX,
+            data: response.data,
+        };
     } catch (err: unknown) {
         throw err;
     }

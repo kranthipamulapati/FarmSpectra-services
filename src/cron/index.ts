@@ -64,7 +64,7 @@ const getFarmsSatelliteDataCron = cron({
 
                             const date = startTime.split("T")[0];
 
-                            const data = await getS2FarmVisitData({
+                            const { data } = await getS2FarmVisitData({
                                 token,
                                 endTime,
                                 startTime,
