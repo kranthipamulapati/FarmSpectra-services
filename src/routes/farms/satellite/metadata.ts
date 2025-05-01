@@ -7,7 +7,7 @@ import {
     type FarmSatelliteTaskMetadata,
 } from "../../../database";
 
-import { getCopernicusS2FirstVisitDate } from "../../../helpers/copernicus";
+import { getSHS2FirstVisitDate } from "../../../helpers/sentinelHub";
 
 const metadataRouter = new Elysia({ prefix: "/farms/satellite/metadata" });
 
@@ -32,7 +32,7 @@ metadataRouter.get(
 
             if (first_visit_date === "") {
                 if (collection_code === "sentinel-2-l2a") {
-                    const firstVisitDate = await getCopernicusS2FirstVisitDate(
+                    const firstVisitDate = await getSHS2FirstVisitDate(
                         taskedFarm
                     );
 

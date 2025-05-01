@@ -10,10 +10,10 @@ import {
 import { getUTCRange } from "../../../utils";
 
 import {
-    getCopernicusAccessToken,
-    getCopernicusS2FarmVisitData,
-    getCopernicusS2FirstVisitDate,
-} from "../../../helpers/copernicus";
+    getSHAccessToken,
+    getSHS2FarmVisitData,
+    getSHS2FirstVisitDate,
+} from "../../../helpers/sentinelHub";
 import { getSatelliteVisitDates } from "../../../helpers";
 
 import { imagesURL, publicFolder } from "../../../constants";
@@ -53,8 +53,9 @@ dataRouter.get(
             // check if first_visit_date exists, if not, get
             if (taskedFarm.first_visit_date === "") {
                 if (collection_code === "sentinel-2-l2a") {
-                    taskedFarm.first_visit_date =
-                        await getCopernicusS2FirstVisitDate(taskedFarm);
+                    taskedFarm.first_visit_date = await getSHS2FirstVisitDate(
+                        taskedFarm
+                    );
 
                     await pocketbase
                         .collection("farm_satellite_metadata")
@@ -74,7 +75,7 @@ dataRouter.get(
             });
 
             if (dates.length > 0 && collection_code === "sentinel-2-l2a") {
-                const token = await getCopernicusAccessToken();
+                const token = await getSHAccessToken();
 
                 for (let i = 0; i < dates.length; i++) {
                     const { endTime, startTime } = getUTCRange(
@@ -83,7 +84,7 @@ dataRouter.get(
 
                     const date = startTime.split("T")[0];
 
-                    const { data } = await getCopernicusS2FarmVisitData({
+                    const { data } = await getSHS2FarmVisitData({
                         token,
                         endTime,
                         startTime,

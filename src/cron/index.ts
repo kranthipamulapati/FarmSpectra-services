@@ -11,10 +11,7 @@ import { getUTCRange } from "../utils";
 
 import { imagesURL, publicFolder } from "../constants";
 
-import {
-    getCopernicusAccessToken,
-    getCopernicusS2FarmVisitData,
-} from "../helpers/copernicus";
+import { getSHAccessToken, getSHS2FarmVisitData } from "../helpers/sentinelHub";
 
 const getFarmsSatelliteDataCron = cron({
     name: "getFarmsSatelliteData",
@@ -30,7 +27,7 @@ const getFarmsSatelliteDataCron = cron({
                 });
 
             if (taskedFarms.length) {
-                const token = await getCopernicusAccessToken();
+                const token = await getSHAccessToken();
 
                 for (let i = 0; i < taskedFarms.length; i++) {
                     const {
@@ -67,14 +64,12 @@ const getFarmsSatelliteDataCron = cron({
 
                             const date = startTime.split("T")[0];
 
-                            const { data } = await getCopernicusS2FarmVisitData(
-                                {
-                                    token,
-                                    endTime,
-                                    startTime,
-                                    coordinates,
-                                }
-                            );
+                            const { data } = await getSHS2FarmVisitData({
+                                token,
+                                endTime,
+                                startTime,
+                                coordinates,
+                            });
 
                             const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
 
