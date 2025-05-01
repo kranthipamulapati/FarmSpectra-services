@@ -3,13 +3,13 @@ import { fromFile, type TypedArray } from "geotiff";
 
 import {
     imagesURL,
-    client_id,
-    client_secret,
     publicFolder,
     copernicusAuthUrl,
     copernicusBaseUrl,
     copernicusProcessUrl,
     copernicusCatalogUrl,
+    copernicus_client_id,
+    copernicus_client_secret,
     sentinel_2_l2a_evalScript,
 } from "../../constants";
 
@@ -30,7 +30,7 @@ import {
 
 const L = 0.5;
 
-const getAccessToken = async () => {
+const getCopernicusAccessToken = async () => {
     try {
         const response = await axios({
             method: "POST",
@@ -39,7 +39,7 @@ const getAccessToken = async () => {
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
-            data: `client_id=${client_id}&client_secret=${client_secret}&grant_type=client_credentials`,
+            data: `client_id=${copernicus_client_id}&client_secret=${copernicus_client_secret}&grant_type=client_credentials`,
         });
 
         return response.data.access_token;
@@ -77,7 +77,7 @@ const getS2FirstVisitDate = async (taskedFarm: FarmSatelliteTaskMetadata) => {
             datetime: `${formattedStartDate}/${formattedEndDate}`,
         };
 
-        const token = await getAccessToken();
+        const token = await getCopernicusAccessToken();
 
         const response = await axios.post(copernicusCatalogUrl, searchParams, {
             headers: {
@@ -150,8 +150,8 @@ const getS2FarmVisitData = async ({
                 ],
             },
             output: {
-                width: 256,
-                height: 256,
+                width,
+                height,
                 responses: [
                     {
                         identifier: "default",
@@ -438,7 +438,7 @@ const processS2Tiff = async (
 
 export {
     processS2Tiff,
-    getAccessToken,
     getS2FarmVisitData,
     getS2FirstVisitDate,
+    getCopernicusAccessToken,
 };

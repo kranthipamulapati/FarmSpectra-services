@@ -8,9 +8,9 @@ import {
 } from "../../../database";
 
 import {
-    getAccessToken,
     getS2FarmVisitData,
     getS2FirstVisitDate,
+    getCopernicusAccessToken,
 } from "../../../helpers/copernicus";
 
 import { getUTCRange } from "../../../utils";
@@ -76,7 +76,7 @@ dataRouter.get(
             });
 
             if (dates.length > 0 && collection_code === "sentinel-2-l2a") {
-                const token = await getAccessToken();
+                const token = await getCopernicusAccessToken();
 
                 for (let i = 0; i < dates.length; i++) {
                     const { endTime, startTime } = getUTCRange(

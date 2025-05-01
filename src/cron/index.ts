@@ -11,7 +11,10 @@ import { getUTCRange } from "../utils";
 
 import { imagesURL, publicFolder } from "../constants";
 
-import { getAccessToken, getS2FarmVisitData } from "../helpers/copernicus";
+import {
+    getS2FarmVisitData,
+    getCopernicusAccessToken,
+} from "../helpers/copernicus";
 
 const getFarmsSatelliteDataCron = cron({
     name: "getFarmsSatelliteData",
@@ -27,7 +30,7 @@ const getFarmsSatelliteDataCron = cron({
                 });
 
             if (taskedFarms.length) {
-                const token = await getAccessToken();
+                const token = await getCopernicusAccessToken();
 
                 for (let i = 0; i < taskedFarms.length; i++) {
                     const {
