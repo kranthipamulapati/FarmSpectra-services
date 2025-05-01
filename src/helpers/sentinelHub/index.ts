@@ -18,7 +18,6 @@ const getSHAccessToken = async () => {
         const response = await axios({
             method: "POST",
             url: shAuthUrl,
-            //baseURL: copernicusBaseUrl,
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
