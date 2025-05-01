@@ -7,7 +7,7 @@ import {
     type FarmSatelliteVisitDataExpand,
 } from "../../../database";
 
-import { processS2Tiff } from "../../../helpers/copernicus";
+import { processS2Tiff } from "../../../helpers";
 
 const processRouter = new Elysia({ prefix: "/farms/satellite/process" });
 

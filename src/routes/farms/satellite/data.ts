@@ -7,17 +7,16 @@ import {
     type FarmSatelliteTaskMetadata,
 } from "../../../database";
 
-import {
-    getS2FarmVisitData,
-    getS2FirstVisitDate,
-    getCopernicusAccessToken,
-} from "../../../helpers/copernicus";
-
 import { getUTCRange } from "../../../utils";
 
-import { imagesURL, publicFolder } from "../../../constants";
-
+import {
+    getCopernicusAccessToken,
+    getCopernicusS2FarmVisitData,
+    getCopernicusS2FirstVisitDate,
+} from "../../../helpers/copernicus";
 import { getSatelliteVisitDates } from "../../../helpers";
+
+import { imagesURL, publicFolder } from "../../../constants";
 
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 
@@ -54,9 +53,8 @@ dataRouter.get(
             // check if first_visit_date exists, if not, get
             if (taskedFarm.first_visit_date === "") {
                 if (collection_code === "sentinel-2-l2a") {
-                    taskedFarm.first_visit_date = await getS2FirstVisitDate(
-                        taskedFarm
-                    );
+                    taskedFarm.first_visit_date =
+                        await getCopernicusS2FirstVisitDate(taskedFarm);
 
                     await pocketbase
                         .collection("farm_satellite_metadata")
@@ -85,7 +83,7 @@ dataRouter.get(
 
                     const date = startTime.split("T")[0];
 
-                    const { data } = await getS2FarmVisitData({
+                    const { data } = await getCopernicusS2FarmVisitData({
                         token,
                         endTime,
                         startTime,

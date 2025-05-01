@@ -12,8 +12,8 @@ import { getUTCRange } from "../utils";
 import { imagesURL, publicFolder } from "../constants";
 
 import {
-    getS2FarmVisitData,
     getCopernicusAccessToken,
+    getCopernicusS2FarmVisitData,
 } from "../helpers/copernicus";
 
 const getFarmsSatelliteDataCron = cron({
@@ -67,12 +67,14 @@ const getFarmsSatelliteDataCron = cron({
 
                             const date = startTime.split("T")[0];
 
-                            const { data } = await getS2FarmVisitData({
-                                token,
-                                endTime,
-                                startTime,
-                                coordinates,
-                            });
+                            const { data } = await getCopernicusS2FarmVisitData(
+                                {
+                                    token,
+                                    endTime,
+                                    startTime,
+                                    coordinates,
+                                }
+                            );
 
                             const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
 
