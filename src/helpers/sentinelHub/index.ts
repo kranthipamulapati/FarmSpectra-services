@@ -9,9 +9,9 @@ import {
     sentinel_2_l2a_evalScript,
 } from "../../constants";
 
-import { Coordinate, FarmSatelliteTaskMetadata } from "../../database";
+import { convertCoordsToPolygon } from "../../utils";
 
-import { convertCoordsToPolygon, getHeightAndWidthInPixels } from "../../utils";
+import { Coordinate, FarmSatelliteTaskMetadata } from "../../database";
 
 const getSHAccessToken = async () => {
     try {
@@ -99,10 +99,6 @@ const getSHS2FarmVisitData = async ({
 }) => {
     try {
         const transformedCoordinates = convertCoordsToPolygon(coordinates);
-        const { height, width, BBOX } = getHeightAndWidthInPixels({
-            resolution: 10,
-            transformedCoordinates,
-        });
 
         const request = {
             input: {
@@ -132,8 +128,8 @@ const getSHS2FarmVisitData = async ({
                 ],
             },
             output: {
-                width,
-                height,
+                width: 256,
+                height: 256,
                 responses: [
                     {
                         identifier: "default",
@@ -154,7 +150,6 @@ const getSHS2FarmVisitData = async ({
         });
 
         return {
-            bbox: BBOX,
             data: response.data,
         };
     } catch (err: unknown) {

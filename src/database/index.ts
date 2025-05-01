@@ -16,6 +16,7 @@ type Farm = {
     area: number;
     unit_fk: string;
     user_fk: string;
+    bbox: Array<number>;
     coordinates: Array<Coordinate>;
     created: Date;
     updated: Date;
@@ -146,7 +147,7 @@ type FarmSatelliteVisitDataExpand = FarmSatelliteVisitData & {
 
 // view with task, farm & satellite active
 type FarmSatelliteTaskMetadata =
-    | ((Pick<Farm, "coordinates"> &
+    | ((Pick<Farm, "bbox" | "coordinates"> &
           Pick<Satellite, "revisit_time" | "collection_code" | "code">) &
           Pick<
               FarmSatelliteTask,

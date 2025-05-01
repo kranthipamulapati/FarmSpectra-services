@@ -1,7 +1,7 @@
 import area from "@turf/area";
 import { t, Elysia } from "elysia";
 import { polygon } from "@turf/helpers";
-import { booleanValid } from "@turf/turf";
+import { bbox, booleanValid } from "@turf/turf";
 
 const newFarmRouter = new Elysia({ prefix: "/farms/new" });
 
@@ -54,10 +54,20 @@ newFarmRouter.post(
                 throw new Error("Polygon is too large.");
             }
 
+            const BBOX = bbox({
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: "Polygon",
+                    coordinates: [coordinates], // should be put inside an array
+                },
+            });
+
             return {
-                area: Number(actualArea.toFixed(0)),
+                bbox: BBOX,
                 isPolygonValid: true,
                 message: "Polygon is valid.",
+                area: Number(actualArea.toFixed(0)),
             };
         } catch (error) {
             set.status = 400;

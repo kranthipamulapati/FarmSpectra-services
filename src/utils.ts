@@ -55,22 +55,13 @@ const convertCoordsToPolygon = (coordinates: Array<Coordinate>) => {
 };
 
 const getHeightAndWidthInPixels = ({
+    bbox,
     resolution,
-    transformedCoordinates,
 }: {
+    bbox: Array<number>;
     resolution: number;
-    transformedCoordinates: Array<Array<number>>;
 }) => {
-    const BBOX = bbox({
-        type: "Feature",
-        properties: {},
-        geometry: {
-            type: "Polygon",
-            coordinates: [transformedCoordinates], // should be put inside an array
-        },
-    });
-
-    const [minLon, minLat, maxLon, maxLat] = BBOX;
+    const [minLon, minLat, maxLon, maxLat] = bbox;
 
     const avgLat = (minLat + maxLat) / 2;
     const metersPerDegreeLon = 111320 * Math.cos((avgLat * Math.PI) / 180);
@@ -82,7 +73,7 @@ const getHeightAndWidthInPixels = ({
     const width = Math.round(widthMeters / resolution);
     const height = Math.round(heightMeters / resolution);
 
-    return { width, height, BBOX };
+    return { width, height };
 };
 
 async function generateColorMapImage({
@@ -137,11 +128,6 @@ async function generateColorMapImage({
         await sharp(rgbaData, {
             raw: { width, height, channels: 4 },
         })
-            .resize({
-                width: 256,
-                height: 256,
-                kernel: sharp.kernel.nearest,
-            })
             .png()
             .toFile(filePath);
     } catch (error: unknown) {

@@ -1,9 +1,6 @@
 import axios from "axios";
-import { fromFile, type TypedArray } from "geotiff";
 
 import {
-    imagesURL,
-    publicFolder,
     copernicusAuthUrl,
     copernicusBaseUrl,
     copernicusProcessUrl,
@@ -14,19 +11,11 @@ import {
 } from "../../constants";
 
 import {
-    pocketbase,
-    SatelliteIndexExpand,
     type Coordinate,
     type FarmSatelliteTaskMetadata,
-    type FarmSatelliteVisitDataExpand,
 } from "../../database";
 
-import {
-    calculateAverage,
-    convertCoordsToPolygon,
-    generateColorMapImage,
-    getHeightAndWidthInPixels,
-} from "../../utils";
+import { convertCoordsToPolygon, getHeightAndWidthInPixels } from "../../utils";
 
 const L = 0.5;
 
@@ -107,6 +96,7 @@ const getCopernicusS2FirstVisitDate = async (
 };
 
 const getCopernicusS2FarmVisitData = async ({
+    bbox,
     token,
     endTime,
     startTime,
@@ -115,13 +105,14 @@ const getCopernicusS2FarmVisitData = async ({
     token: string;
     endTime: string;
     startTime: string;
+    bbox: Array<number>;
     coordinates: Array<Coordinate>;
 }) => {
     try {
         const transformedCoordinates = convertCoordsToPolygon(coordinates);
-        const { height, width, BBOX } = getHeightAndWidthInPixels({
+        const { height, width } = getHeightAndWidthInPixels({
+            bbox,
             resolution: 10,
-            transformedCoordinates,
         });
 
         const request = {
@@ -174,7 +165,6 @@ const getCopernicusS2FarmVisitData = async ({
         });
 
         return {
-            bbox: BBOX,
             data: response.data,
         };
     } catch (err: unknown) {
