@@ -32,6 +32,7 @@ const getFarmsSatelliteDataCron = cron({
                 for (let i = 0; i < taskedFarms.length; i++) {
                     const {
                         code,
+                        bbox,
                         farm_fk,
                         satellite_fk,
                         coordinates,
@@ -65,6 +66,7 @@ const getFarmsSatelliteDataCron = cron({
                             const date = startTime.split("T")[0];
 
                             const { data } = await getSHS2FarmVisitData({
+                                bbox,
                                 token,
                                 endTime,
                                 startTime,

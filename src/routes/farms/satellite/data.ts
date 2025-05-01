@@ -39,6 +39,7 @@ dataRouter.get(
 
             const {
                 farm_fk,
+                bbox,
                 coordinates,
 
                 end_date, // task end date
@@ -85,6 +86,7 @@ dataRouter.get(
                     const date = startTime.split("T")[0];
 
                     const { data } = await getSHS2FarmVisitData({
+                        bbox,
                         token,
                         endTime,
                         startTime,
