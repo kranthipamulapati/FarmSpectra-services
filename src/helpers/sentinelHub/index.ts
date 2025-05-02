@@ -181,7 +181,7 @@ const getSHPlanetScopeFarmVisitData = async ({
     try {
         const { height, width } = getHeightAndWidthInPixels({
             bbox,
-            resolution: 10,
+            resolution: 3,
         });
 
         const transformedCoordinates = convertCoordsToPolygon(coordinates);

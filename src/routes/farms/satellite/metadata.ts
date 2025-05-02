@@ -43,6 +43,8 @@ metadataRouter.get(
                             satellite_fk,
                             first_visit_date: firstVisitDate,
                         });
+                } else if (collection_code === "planet-scope") {
+                    // do nothing
                 }
             } else {
                 throw new Error("Metadata already exists.");

@@ -87,7 +87,7 @@ const planet_scope_evalScript = `
                     "red", 
                     "blue", 
                     "green",
-                    "re",
+                    "rededge",
                     "nir",
                 ],
                 units: [
@@ -112,7 +112,7 @@ const planet_scope_evalScript = `
             sample.red, 
             sample.blue, 
             sample.green,
-            sample.re,
+            sample.rededge,
             sample.nir,
         ];
     }

@@ -7,7 +7,7 @@ import {
     type FarmSatelliteVisitDataExpand,
 } from "../../../database";
 
-import { processS2Tiff } from "../../../helpers";
+import { processPSTiff, processS2Tiff } from "../../../helpers";
 
 const processRouter = new Elysia({ prefix: "/farms/satellite/process" });
 
@@ -36,6 +36,8 @@ processRouter.get(
 
                 if (collection_code === "sentinel-2-l2a") {
                     await processS2Tiff(id, tiffImage);
+                } else if (collection_code === "planet-scope") {
+                    await processPSTiff(id, tiffImage);
                 }
             } else {
                 throw new Error("Already processed.");

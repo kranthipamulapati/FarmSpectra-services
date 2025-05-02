@@ -13,6 +13,7 @@ import {
     getSHAccessToken,
     getSHS2FarmVisitData,
     getSHS2FirstVisitDate,
+    getSHPlanetScopeFarmVisitData,
 } from "../../../helpers/sentinelHub";
 import { getSatelliteVisitDates } from "../../../helpers";
 
@@ -75,7 +76,7 @@ dataRouter.get(
                 first_visit_date: taskedFarm.first_visit_date,
             });
 
-            if (dates.length > 0 && collection_code === "sentinel-2-l2a") {
+            if (dates.length > 0) {
                 const token = await getSHAccessToken();
 
                 for (let i = 0; i < dates.length; i++) {
@@ -83,19 +84,32 @@ dataRouter.get(
                         new Date(dates[i])
                     );
 
+                    let res = {
+                        data: "",
+                    };
                     const date = startTime.split("T")[0];
 
-                    const { data } = await getSHS2FarmVisitData({
-                        bbox,
-                        token,
-                        endTime,
-                        startTime,
-                        coordinates,
-                    });
+                    if (collection_code === "sentinel-2-l2a") {
+                        res = await getSHS2FarmVisitData({
+                            bbox,
+                            token,
+                            endTime,
+                            startTime,
+                            coordinates,
+                        });
+                    } else if (collection_code === "planet-scope") {
+                        res = await getSHPlanetScopeFarmVisitData({
+                            bbox,
+                            token,
+                            endTime,
+                            startTime,
+                            coordinates,
+                        });
+                    }
 
                     const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
 
-                    await Bun.write(path, data);
+                    await Bun.write(path, res.data);
 
                     await pocketbase
                         .collection("farm_satellite_visit_data")
