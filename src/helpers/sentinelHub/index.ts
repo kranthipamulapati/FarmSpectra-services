@@ -6,6 +6,7 @@ import {
     shProcessUrl,
     sh_client_id,
     sh_client_secret,
+    planet_scope_evalScript,
     sentinel_2_l2a_evalScript,
 } from "../../constants";
 
@@ -164,4 +165,86 @@ const getSHS2FarmVisitData = async ({
     }
 };
 
-export { getSHAccessToken, getSHS2FarmVisitData, getSHS2FirstVisitDate };
+const getSHPlanetScopeFarmVisitData = async ({
+    bbox,
+    token,
+    endTime,
+    startTime,
+    coordinates,
+}: {
+    token: string;
+    endTime: string;
+    startTime: string;
+    bbox: Array<number>;
+    coordinates: Array<Coordinate>;
+}) => {
+    try {
+        const { height, width } = getHeightAndWidthInPixels({
+            bbox,
+            resolution: 10,
+        });
+
+        const transformedCoordinates = convertCoordsToPolygon(coordinates);
+
+        const request = {
+            input: {
+                bounds: {
+                    geometry: {
+                        type: "Polygon",
+                        coordinates: [transformedCoordinates],
+                    },
+                    properties: {
+                        crs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+                    },
+                },
+                data: [
+                    {
+                        dataFilter: {
+                            timeRange: {
+                                to: endTime,
+                                from: startTime,
+                            },
+                        },
+                        processing: {
+                            harmonizeValues: false,
+                        },
+                        type: "BYOC-28eef896-9632-4546-a99e-cea34d74b21e",
+                    },
+                ],
+            },
+            output: {
+                width,
+                height,
+                responses: [
+                    {
+                        identifier: "default",
+                        format: { type: "image/tiff" },
+                    },
+                ],
+            },
+            evalscript: planet_scope_evalScript,
+        };
+
+        const response = await axios.post(shProcessUrl, request, {
+            headers: {
+                Accept: "image/tiff",
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            responseType: "arraybuffer",
+        });
+
+        return {
+            data: response.data,
+        };
+    } catch (err: unknown) {
+        throw err;
+    }
+};
+
+export {
+    getSHAccessToken,
+    getSHS2FarmVisitData,
+    getSHS2FirstVisitDate,
+    getSHPlanetScopeFarmVisitData,
+};

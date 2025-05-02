@@ -78,6 +78,46 @@ const sentinel_2_l2a_evalScript = `
         }
     `;
 
+const planet_scope_evalScript = `
+    //VERSION=3
+    function setup() {
+        return {
+            input: [{
+                bands: [
+                    "red", 
+                    "blue", 
+                    "green",
+                    "re",
+                    "nir",
+                ],
+                units: [
+                    "DN",
+                    "DN",
+                    "DN",
+                    "DN",
+                    "DN",
+                ]
+            }],
+            output: { 
+                bands: 5,  
+                id: "default",
+                sampleType: SampleType.FLOAT32 
+            },
+            mosaicking: Mosaicking.SIMPLE
+        };
+    }
+
+    function evaluatePixel(sample) {
+        return [
+            sample.red, 
+            sample.blue, 
+            sample.green,
+            sample.re,
+            sample.nir,
+        ];
+    }
+`;
+
 export {
     imagesURL,
     apiBaseURL,
@@ -96,4 +136,5 @@ export {
     copernicus_client_id,
     copernicus_client_secret,
     sentinel_2_l2a_evalScript,
+    planet_scope_evalScript,
 };

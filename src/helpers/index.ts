@@ -307,4 +307,219 @@ const processS2Tiff = async (
     }
 };
 
-export { processS2Tiff, getSatelliteVisitDates };
+const processPSTiff = async (
+    id: string,
+    tiffImage: FarmSatelliteVisitDataExpand
+) => {
+    try {
+        const { farm_fk, visit_date } = tiffImage;
+        const { code, id: satId } = tiffImage.expand.satellite_fk;
+
+        const satelliteIndices = await pocketbase
+            .collection("satellite_indices")
+            .getFullList<SatelliteIndexExpand>({
+                expand: "index_fk",
+                filter: `satellite_fk = '${satId}' && active = true && index_fk.active = true`,
+            });
+
+        const indices = satelliteIndices.map(
+            (item) => item.expand.index_fk.code
+        );
+
+        if (indices.length) {
+            const date = visit_date.split(" ")[0];
+            const tiff = await fromFile(
+                `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`
+            );
+            const image = await tiff.getImage();
+            const rasters = await image.readRasters();
+
+            const width = image.getWidth();
+            const height = image.getHeight();
+
+            const redBand = rasters[0] as TypedArray; // red
+            const blueBand = rasters[1] as TypedArray; // blue
+            const greenBand = rasters[2] as TypedArray; // green
+            const redEdgeBand = rasters[3] as TypedArray; // red edge
+            const nirBand = rasters[4] as TypedArray; // near infra red
+
+            const data: {
+                [key: string]: Float32Array<ArrayBuffer>;
+            } = {};
+
+            for (let i = 0; i < indices.length; i++) {
+                data[indices[i]] = new Float32Array(width * height);
+            }
+
+            for (let i = 0; i < height * width; i++) {
+                const red = redBand[i];
+                const nir = nirBand[i];
+                const blue = blueBand[i];
+                const green = greenBand[i];
+                const redEdge = redEdgeBand[i];
+
+                if (data.NDVI) {
+                    const denominator = nir + red;
+
+                    data.NDVI[i] =
+                        denominator === 0 ? 0 : (nir - red) / denominator;
+                }
+
+                if (data.GNDVI) {
+                    const denominator = nir + green;
+
+                    data.GNDVI[i] =
+                        denominator === 0 ? 0 : (nir - green) / denominator;
+                }
+
+                if (data.GCI) {
+                    data.GCI[i] = green === 0 ? 0 : nir / green - 1;
+                }
+
+                if (data.RECI) {
+                    data.RECI[i] = redEdge === 0 ? 0 : nir / redEdge - 1;
+                }
+
+                if (data.SAVI) {
+                    const denominator = nir + red + L;
+
+                    data.SAVI[i] =
+                        denominator === 0
+                            ? 0
+                            : ((nir - red) / denominator) * (1 + L);
+                }
+
+                if (data.MSAVI) {
+                    const term = (2 * nir + 1) ** 2 - 8 * (nir - red);
+
+                    data.MSAVI[i] =
+                        (2 * nir + 1 - Math.sqrt(Math.max(0, term))) / 2;
+                }
+
+                if (data.OSAVI) {
+                    const denominator = nir + red + 0.16;
+
+                    data.OSAVI[i] =
+                        denominator === 0 ? 0 : (nir - red) / denominator;
+                }
+
+                if (data.NDWI) {
+                    const denominator = green + nir;
+
+                    data.NDWI[i] =
+                        denominator === 0 ? 0 : (green - nir) / denominator;
+                }
+
+                if (data.ARVI) {
+                    const numerator = nir - (2 * red - blue);
+                    const denominator = nir + (2 * red + blue);
+
+                    data.ARVI[i] =
+                        denominator === 0 ? 0 : numerator / denominator;
+                }
+
+                if (data.VARI) {
+                    const denominator = green + red - blue;
+
+                    data.VARI[i] =
+                        denominator === 0 ? 0 : (green - red) / denominator;
+                }
+
+                if (data.EVI) {
+                    const denominator = nir + 6 * red - 7.5 * blue + 1;
+
+                    data.EVI[i] =
+                        denominator === 0
+                            ? 0
+                            : (2.5 * (nir - red)) / denominator;
+                }
+
+                if (data.EVI2) {
+                    const denominator = nir + 2.4 * red + 1;
+
+                    data.EVI2[i] =
+                        denominator === 0
+                            ? 0
+                            : (2.5 * (nir - red)) / denominator;
+                }
+
+                if (data.SIPI) {
+                    const denominator = nir - red;
+
+                    data.SIPI[i] =
+                        denominator === 0 ? 0 : (nir - blue) / denominator;
+                }
+
+                if (data.CVI) {
+                    const denominator = red === 0 ? 1e-6 : red;
+
+                    data.CVI[i] = nir / denominator;
+                }
+
+                if (data.PSRI) {
+                    const denominator = nir === 0 ? 1e-6 : nir;
+
+                    data.PSRI[i] = (red - blue) / denominator;
+                }
+
+                if (data.TVI) {
+                    data.TVI[i] =
+                        0.5 * (120 * (nir - green) - 200 * (red - green));
+                }
+
+                if (data.MTVI2) {
+                    const numerator =
+                        1.5 * (1.2 * (nir - green) - 2.5 * (red - green));
+
+                    const sqrtTerm = Math.sqrt(
+                        Math.pow(2 * nir + 1, 2) -
+                            (6 * nir - 5 * Math.sqrt(red))
+                    );
+
+                    data.MTVI2[i] = sqrtTerm === 0 ? 0 : numerator / sqrtTerm;
+                }
+            }
+
+            const basePath = `${publicFolder}/images/${farm_fk}/${date}/${code}`;
+
+            await Promise.all(
+                indices.map((satelliteIndex, i) => {
+                    return generateColorMapImage({
+                        width,
+                        height,
+                        data: data[satelliteIndex],
+                        colorMatrix: satelliteIndices[i].color_matrix,
+                        filePath: `${basePath}/${satelliteIndex}.png`,
+                    });
+                })
+            );
+
+            await Promise.all(
+                indices.map((satelliteIndex, i) => {
+                    return pocketbase
+                        .collection("farm_satellite_index_images")
+                        .create({
+                            visit_fk: id,
+                            index_fk: satelliteIndices[i].index_fk,
+                            image_url: `${imagesURL}/${farm_fk}/${date}/${code}/${satelliteIndex}.png`,
+                        });
+                })
+            );
+
+            await pocketbase
+                .collection("farm_satellite_visit_data")
+                .update(id, {
+                    cloud_cover: 0,
+                    processed: true,
+                });
+
+            return "success";
+        } else {
+            throw new Error("No indices to process.");
+        }
+    } catch (error: unknown) {
+        throw error;
+    }
+};
+
+export { processS2Tiff, processPSTiff, getSatelliteVisitDates };
