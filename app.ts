@@ -10,14 +10,12 @@ import { calendarRouter } from "./src/routes/farms/calendar";
 import { dataRouter } from "./src/routes/farms/satellite/data";
 import { taskRouter } from "./src/routes/farms/satellite/task.ts";
 import { processRouter } from "./src/routes/farms/satellite/process";
-import { metadataRouter } from "./src/routes/farms/satellite/metadata";
 
 app.use(swagger());
 app.use(dataRouter);
 app.use(taskRouter);
 app.use(farmsRouter);
 app.use(processRouter);
-app.use(metadataRouter);
 app.use(calendarRouter);
 
 app.use(getFarmsSatelliteDataCron);
