@@ -13,14 +13,13 @@ type Coordinate = {
 type Farm = {
     id: string;
     name: string;
-    area: number;
-    unit_fk: string;
     user_fk: string;
-    bbox: Array<number>;
+    area_in_sqm: number;
     coordinates: Array<Coordinate>;
+    bbox: Array<number>;
+    active: boolean;
     created: Date;
     updated: Date;
-    active: boolean;
 };
 
 type Satellite = {

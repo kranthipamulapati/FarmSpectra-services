@@ -2,11 +2,12 @@ import area from "@turf/area";
 import { t, Elysia } from "elysia";
 import { polygon } from "@turf/helpers";
 import { bbox, booleanValid } from "@turf/turf";
+import { Farm, pocketbase } from "../../database";
 
-const newFarmRouter = new Elysia({ prefix: "/farms/new" });
+const farmsRouter = new Elysia({ prefix: "/farms" });
 
-newFarmRouter.post(
-    "/validate",
+farmsRouter.post(
+    "/create/validate",
     ({ set, body }) => {
         try {
             const coordinates = body.coordinates.map(({ lat, lng }) => [
@@ -94,4 +95,74 @@ newFarmRouter.post(
     }
 );
 
-export { newFarmRouter };
+farmsRouter.post(
+    "/update/validate",
+    async ({ set, body }) => {
+        try {
+            const { id, coordinates } = body;
+
+            const farm = await pocketbase.collection("farms").getOne<Farm>(id);
+
+            const areCoordinatesEqual =
+                farm.coordinates.length === coordinates.length &&
+                farm.coordinates.every(
+                    (coord, index) =>
+                        coord.lat === coordinates[index].lat &&
+                        coord.lng === coordinates[index].lng
+                );
+
+            if (!areCoordinatesEqual) {
+                throw new Error("Coordinates cannot be changed.");
+            }
+
+            const transformedCoordinates = coordinates.map(({ lat, lng }) => [
+                lng,
+                lat,
+            ]);
+
+            const turfPoly = polygon([transformedCoordinates]);
+
+            const BBOX = bbox({
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: "Polygon",
+                    coordinates: [transformedCoordinates], // should be put inside an array
+                },
+            });
+
+            const actualArea = area(turfPoly);
+
+            return {
+                bbox: BBOX,
+                isPolygonValid: true,
+                message: "Polygon is valid.",
+                area: Number(actualArea.toFixed(0)),
+            };
+        } catch (error) {
+            set.status = 400;
+
+            if (error instanceof Error) {
+                return { isPolygonValid: false, message: error.message };
+            } else {
+                return {
+                    isPolygonValid: false,
+                    message: "An unknown error occurred.",
+                };
+            }
+        }
+    },
+    {
+        body: t.Object({
+            id: t.String(),
+            coordinates: t.Array(
+                t.Object({
+                    lat: t.Number(),
+                    lng: t.Number(),
+                })
+            ),
+        }),
+    }
+);
+
+export { farmsRouter };

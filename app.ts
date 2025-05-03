@@ -5,7 +5,7 @@ const app = new Elysia();
 
 import { getFarmsSatelliteDataCron } from "./src/cron/index.ts";
 
-import { newFarmRouter } from "./src/routes/farms/new";
+import { farmsRouter } from "./src/routes/farms";
 import { calendarRouter } from "./src/routes/farms/calendar";
 import { dataRouter } from "./src/routes/farms/satellite/data";
 import { taskRouter } from "./src/routes/farms/satellite/task.ts";
@@ -15,7 +15,7 @@ import { metadataRouter } from "./src/routes/farms/satellite/metadata";
 app.use(swagger());
 app.use(dataRouter);
 app.use(taskRouter);
-app.use(newFarmRouter);
+app.use(farmsRouter);
 app.use(processRouter);
 app.use(metadataRouter);
 app.use(calendarRouter);
