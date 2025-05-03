@@ -99,7 +99,7 @@ type SatelliteIndex = {
     updated: Date;
 };
 
-type FarmCalender = {
+type FarmCalendar = {
     id: string;
     farm_fk: string;
     crop_fk: string;
@@ -175,7 +175,7 @@ export type {
     Index,
     Satellite,
     Coordinate,
-    FarmCalender,
+    FarmCalendar,
     SatelliteIndex,
     FarmSatelliteTask,
     SatelliteIndexExpand,

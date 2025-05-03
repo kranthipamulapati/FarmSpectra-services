@@ -4,10 +4,12 @@ import { ClientResponseError } from "pocketbase";
 import {
     pocketbase,
     loginToDatabase,
-    type FarmCalender,
+    type FarmCalendar,
 } from "../../../database";
 
 const calendarRouter = new Elysia({ prefix: "/farms/calendar" });
+
+const formatDate = (d: Date) => d.toISOString().split("T")[0];
 
 function normalizeDate(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -17,11 +19,14 @@ calendarRouter.post(
     "/validate",
     async ({ set, body }) => {
         try {
-            const { id, farm_fk, sowing_date, harvesting_date } = body;
+            const { id, crop_fk, farm_fk, sowing_date, harvesting_date } = body;
 
-            if (normalizeDate(sowing_date) > normalizeDate(harvesting_date)) {
+            const newSowing = normalizeDate(sowing_date);
+            const newHarvesting = normalizeDate(harvesting_date);
+
+            if (newSowing > newHarvesting) {
                 throw new Error(
-                    "Sowing date must be before or equal to harvesting date."
+                    "Sowing date must be on or before the harvesting date."
                 );
             }
 
@@ -30,24 +35,39 @@ calendarRouter.post(
             }
 
             // Fetch all calendars for this farm
-            const farms = await pocketbase
+            const calendars = await pocketbase
                 .collection("farm_calendar")
-                .getFullList<FarmCalender>({
+                .getFullList<FarmCalendar>({
                     filter: `farm_fk = '${farm_fk}'`,
                     fields: "id, sowing_date, harvesting_date",
                 });
 
-            for (const farm of farms) {
-                if (id && farm.id === id) continue; // skip the same record
+            if (id) {
+                // On update, fetch the existing calendar to compare
+                const existingCalendar = calendars.find(
+                    (calendar) => calendar.id === id
+                );
 
-                const existingSowing = normalizeDate(
-                    new Date(farm.sowing_date)
-                );
+                if (!existingCalendar) {
+                    throw new Error("Calendar to update not found.");
+                }
+
+                if (crop_fk !== existingCalendar.crop_fk) {
+                    throw new Error(`Crop can not be changed.`);
+                }
+
+                if (newSowing !== normalizeDate(existingCalendar.sowing_date)) {
+                    throw new Error(`Sowing date can not be changed.`);
+                }
+            }
+
+            for (const calendar of calendars) {
+                if (id && calendar.id === id) continue; // skip the same record
+
+                const existingSowing = normalizeDate(calendar.sowing_date);
                 const existingHarvesting = normalizeDate(
-                    new Date(farm.harvesting_date)
+                    calendar.harvesting_date
                 );
-                const newSowing = normalizeDate(new Date(sowing_date));
-                const newHarvesting = normalizeDate(new Date(harvesting_date));
 
                 const overlap =
                     newSowing <= existingHarvesting &&
@@ -55,7 +75,9 @@ calendarRouter.post(
 
                 if (overlap) {
                     throw new Error(
-                        `Overlapping calendar detected with existing event from ${existingSowing.toISOString()} to ${existingHarvesting.toISOString()}`
+                        `Overlapping calendar detected with existing event from ${formatDate(
+                            existingSowing
+                        )} to ${formatDate(existingHarvesting)}.`
                     );
                 }
             }
@@ -93,6 +115,7 @@ calendarRouter.post(
     {
         body: t.Object({
             farm_fk: t.String(),
+            crop_fk: t.String(),
             sowing_date: t.Date(),
             harvesting_date: t.Date(),
             id: t.Optional(t.String()),
