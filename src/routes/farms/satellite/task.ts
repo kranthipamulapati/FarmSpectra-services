@@ -13,6 +13,8 @@ function normalizeDate(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+const formatDate = (d: Date) => d.toISOString().split("T")[0];
+
 taskRouter.post(
     "/validate",
     async ({ set, body }) => {
@@ -33,20 +35,22 @@ taskRouter.post(
                 await loginToDatabase();
             }
 
-            // Fetch all tasks for this farm
-            const tasks = await pocketbase
-                .collection("farm_satellite_tasking")
-                .getFullList<FarmSatelliteTask>({
-                    fields: "id, start_date, end_date",
-                    filter: `farm_fk = '${farm_fk}' && satellite_fk = '${satellite_fk}'`,
-                });
-
             if (id) {
                 // On update, fetch the existing task to compare
-                const existingTask = tasks.find((task) => task.id === id);
+                const existingTask = await pocketbase
+                    .collection("farm_satellite_tasking")
+                    .getOne<FarmSatelliteTask>(id);
 
                 if (!existingTask) {
                     throw new Error("Task to update not found.");
+                }
+
+                if (farm_fk !== existingTask.farm_fk) {
+                    throw new Error(`Farm can not be changed.`);
+                }
+
+                if (satellite_fk !== existingTask.satellite_fk) {
+                    throw new Error(`Satellite can not be changed.`);
                 }
 
                 const existingStart = normalizeDate(
@@ -59,11 +63,17 @@ taskRouter.post(
                     );
                 }
 
-                // Rule 2: End date must not be before today
                 if (newEnd < today) {
                     throw new Error("End date cannot be earlier than today.");
                 }
             }
+
+            // Fetch all tasks for this farm
+            const tasks = await pocketbase
+                .collection("farm_satellite_tasking")
+                .getFullList<FarmSatelliteTask>({
+                    filter: `farm_fk = '${farm_fk}' && satellite_fk = '${satellite_fk}'`,
+                });
 
             for (const task of tasks) {
                 if (id && task.id === id) continue; // skip the same record
@@ -76,7 +86,9 @@ taskRouter.post(
 
                 if (overlap) {
                     throw new Error(
-                        `Overlapping task exists from ${existingStart.toISOString()} to ${existingEnd.toISOString()}`
+                        `Overlapping task exists from ${formatDate(
+                            existingStart
+                        )} to ${formatDate(existingEnd)}.`
                     );
                 }
             }
