@@ -158,10 +158,32 @@ function calculateAverage(arr: Float32Array) {
     return sum / validValues.length;
 }
 
+const sendErrorMail = async (message: string, errorMessages: string) => {
+    const errorMailOptions = {
+        from: "errors@farmspectra.com",
+        to: "pamulapati.kranthi@gmail.com",
+        subject: "FarmSpectra Error Notification",
+        text: `
+            An error occurred in the system:
+            Message:
+                ${message}
+            Details:
+                ${errorMessages || "No additional error details provided."}
+            Timestamp: ${new Date().toISOString()}
+        `,
+    };
+
+    try {
+        await emailCLient.sendMail(errorMailOptions);
+    } catch (err) {
+        throw err;
+    }
+};
+
 export {
     getUTCDate,
     getUTCRange,
-    emailCLient,
+    sendErrorMail,
     calculateAverage,
     generateColorMapImage,
     convertCoordsToPolygon,

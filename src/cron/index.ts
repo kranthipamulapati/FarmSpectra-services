@@ -7,7 +7,7 @@ import {
     type FarmSatelliteTaskMetadata,
 } from "../database";
 
-import { getUTCRange } from "../utils";
+import { getUTCRange, sendErrorMail } from "../utils";
 
 import { imagesURL, publicFolder } from "../constants";
 
@@ -90,22 +90,26 @@ const getFarmsSatelliteDataCron = cron({
                 }
             }
         } catch (error: unknown) {
+            let errorMessage = "An unknown error occurred";
+
             if (error instanceof ClientResponseError) {
                 const { data, message } = error.response;
 
-                const errorMessages = Object.entries(data || {})
+                const errorDetails = Object.entries(data || {})
                     .map(
                         ([field, err]: [string, any]) =>
                             `${field}: ${err.message}`
                     )
                     .join("\n");
 
-                return `${message}\n${errorMessages}`;
+                errorMessage = `${message}\n${errorDetails}`;
             } else if (error instanceof Error) {
-                return error.message;
-            } else {
-                return "An unknown error occurred";
+                errorMessage = error.message;
             }
+
+            await sendErrorMail("getFarmsSatelliteDataCron", errorMessage);
+
+            return errorMessage;
         }
     },
 });

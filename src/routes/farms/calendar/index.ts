@@ -1,4 +1,5 @@
 import { t, Elysia } from "elysia";
+import { ClientResponseError } from "pocketbase";
 
 import {
     pocketbase,
@@ -64,14 +65,27 @@ calendarRouter.post(
         } catch (error) {
             set.status = 400;
 
-            if (error instanceof Error) {
-                return { isCalendarValid: false, message: error.message };
-            } else {
-                return {
-                    isCalendarValid: false,
-                    message: "An unknown error occurred.",
-                };
+            let errorMessage = "An unknown error occurred";
+
+            if (error instanceof ClientResponseError) {
+                const { data, message } = error.response;
+
+                const errorDetails = Object.entries(data || {})
+                    .map(
+                        ([field, err]: [string, any]) =>
+                            `${field}: ${err.message}`
+                    )
+                    .join("\n");
+
+                errorMessage = `${message}\n${errorDetails}`;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
             }
+
+            return {
+                message: errorMessage,
+                isCalendarValid: false,
+            };
         }
     },
     {
