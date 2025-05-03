@@ -25,7 +25,9 @@ calendarRouter.post(
                 );
             }
 
-            await loginToDatabase();
+            if (pocketbase.authStore.isValid === false) {
+                await loginToDatabase();
+            }
 
             // Fetch all calendars for this farm
             const farms = await pocketbase

@@ -22,7 +22,9 @@ const getFarmsSatelliteDataCron = cron({
     pattern: Patterns.EVERY_DAY_AT_1AM,
     run: async () => {
         try {
-            await loginToDatabase();
+            if (pocketbase.authStore.isValid === false) {
+                await loginToDatabase();
+            }
 
             const taskedFarms = await pocketbase
                 .collection("farm_satellite_tasking_metadata_view")

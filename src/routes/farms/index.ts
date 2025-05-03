@@ -4,7 +4,7 @@ import { polygon } from "@turf/helpers";
 import { bbox, booleanValid } from "@turf/turf";
 import { ClientResponseError } from "pocketbase";
 
-import { Farm, pocketbase } from "../../database";
+import { type Farm, pocketbase, loginToDatabase } from "../../database";
 
 const farmsRouter = new Elysia({ prefix: "/farms" });
 
@@ -115,6 +115,10 @@ farmsRouter.post(
     async ({ set, body }) => {
         try {
             const { id, coordinates } = body;
+
+            if (pocketbase.authStore.isValid === false) {
+                await loginToDatabase();
+            }
 
             const farm = await pocketbase.collection("farms").getOne<Farm>(id);
 

@@ -32,7 +32,9 @@ dataRouter.get(
         const { id } = params; // task id
 
         try {
-            await loginToDatabase();
+            if (pocketbase.authStore.isValid === false) {
+                await loginToDatabase();
+            }
 
             const taskedFarm = await pocketbase
                 .collection("farm_satellite_tasking_metadata_view")

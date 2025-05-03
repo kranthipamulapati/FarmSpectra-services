@@ -29,7 +29,9 @@ taskRouter.post(
                 );
             }
 
-            await loginToDatabase();
+            if (pocketbase.authStore.isValid === false) {
+                await loginToDatabase();
+            }
 
             // Fetch all tasks for this farm
             const tasks = await pocketbase

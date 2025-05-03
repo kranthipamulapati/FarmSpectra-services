@@ -23,7 +23,9 @@ processRouter.get(
         const { id } = params;
 
         try {
-            await loginToDatabase();
+            if (pocketbase.authStore.isValid === false) {
+                await loginToDatabase();
+            }
 
             const tiffImage = await pocketbase
                 .collection("farm_satellite_visit_data")
