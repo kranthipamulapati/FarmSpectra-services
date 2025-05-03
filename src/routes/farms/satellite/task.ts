@@ -56,11 +56,11 @@ taskRouter.post(
                         `Start date cannot be after the existing start date (${existingStart.toDateString()}).`
                     );
                 }
-            }
 
-            // Rule 2: End date must not be before today
-            if (newEnd < today) {
-                throw new Error("End date cannot be earlier than today.");
+                // Rule 2: End date must not be before today
+                if (newEnd < today) {
+                    throw new Error("End date cannot be earlier than today.");
+                }
             }
 
             for (const task of tasks) {
