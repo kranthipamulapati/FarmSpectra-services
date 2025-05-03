@@ -11,7 +11,11 @@ import { getUTCRange, sendErrorMail } from "../utils";
 
 import { imagesURL, publicFolder } from "../constants";
 
-import { getSHAccessToken, getSHS2FarmVisitData } from "../helpers/sentinelHub";
+import {
+    getSHAccessToken,
+    getSHS2FarmVisitData,
+    getSHS2FirstVisitDate,
+} from "../helpers/sentinelHub";
 
 const getFarmsSatelliteDataCron = cron({
     name: "getFarmsSatelliteData",
@@ -22,32 +26,50 @@ const getFarmsSatelliteDataCron = cron({
 
             const taskedFarms = await pocketbase
                 .collection("farm_satellite_tasking_metadata_view")
-                .getFullList<FarmSatelliteTaskMetadata>({
-                    filter: "first_visit_date != ''",
-                });
+                .getFullList<FarmSatelliteTaskMetadata>();
 
             if (taskedFarms.length) {
                 const token = await getSHAccessToken();
 
                 for (let i = 0; i < taskedFarms.length; i++) {
+                    const taskedFarm = taskedFarms[i];
+
                     const {
-                        code,
-                        bbox,
                         farm_fk,
-                        satellite_fk,
+
+                        bbox,
                         coordinates,
-                        revisit_time,
+
+                        satellite_fk,
+                        code,
                         collection_code,
-                        first_visit_date,
-                    } = taskedFarms[i];
+                        revisit_time,
+                    } = taskedFarm;
+
+                    // check if first_visit_date exists, if not, get
+                    if (taskedFarm.first_visit_date === "") {
+                        if (collection_code === "sentinel-2-l2a") {
+                            taskedFarm.first_visit_date =
+                                await getSHS2FirstVisitDate(taskedFarm);
+
+                            await pocketbase
+                                .collection("farm_satellite_metadata")
+                                .create({
+                                    farm_fk,
+                                    satellite_fk,
+                                    first_visit_date:
+                                        taskedFarm.first_visit_date,
+                                });
+                        }
+                    }
 
                     const today = new Date();
                     const yesterday = new Date(today);
                     yesterday.setUTCDate(today.getUTCDate() - 1);
                     yesterday.setUTCHours(0, 0, 0, 0);
 
-                    const firstVisitDate = new Date( //@ts-ignore
-                        first_visit_date.split(" ")[0]
+                    const firstVisitDate = new Date(
+                        taskedFarm.first_visit_date.split(" ")[0]
                     );
 
                     const diffTime =
