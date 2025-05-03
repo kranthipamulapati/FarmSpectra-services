@@ -15,6 +15,8 @@ function normalizeDate(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+// farm_fk needs to be checked before getting other calenders as farm_fk might contain other farms id when user is trying to change farm itself
+
 calendarRouter.post(
     "/validate",
     async ({ set, body }) => {
@@ -34,39 +36,46 @@ calendarRouter.post(
                 await loginToDatabase();
             }
 
-            // Fetch all calendars for this farm
-            const calendars = await pocketbase
-                .collection("farm_calendar")
-                .getFullList<FarmCalendar>({
-                    filter: `farm_fk = '${farm_fk}'`,
-                    fields: "id, sowing_date, harvesting_date",
-                });
-
             if (id) {
-                // On update, fetch the existing calendar to compare
-                const existingCalendar = calendars.find(
-                    (calendar) => calendar.id === id
-                );
+                const existingCalendar = await pocketbase
+                    .collection("farm_calendar")
+                    .getOne<FarmCalendar>(id);
 
                 if (!existingCalendar) {
                     throw new Error("Calendar to update not found.");
+                }
+
+                if (farm_fk !== existingCalendar.farm_fk) {
+                    throw new Error(`Farm can not be changed.`);
                 }
 
                 if (crop_fk !== existingCalendar.crop_fk) {
                     throw new Error(`Crop can not be changed.`);
                 }
 
-                if (newSowing !== normalizeDate(existingCalendar.sowing_date)) {
+                if (
+                    newSowing !==
+                    normalizeDate(new Date(existingCalendar.sowing_date))
+                ) {
                     throw new Error(`Sowing date can not be changed.`);
                 }
             }
 
+            // Fetch all calendars for this farm
+            const calendars = await pocketbase
+                .collection("farm_calendar")
+                .getFullList<FarmCalendar>({
+                    filter: `farm_fk = '${farm_fk}'`,
+                });
+
             for (const calendar of calendars) {
                 if (id && calendar.id === id) continue; // skip the same record
 
-                const existingSowing = normalizeDate(calendar.sowing_date);
+                const existingSowing = normalizeDate(
+                    new Date(calendar.sowing_date)
+                );
                 const existingHarvesting = normalizeDate(
-                    calendar.harvesting_date
+                    new Date(calendar.harvesting_date)
                 );
 
                 const overlap =
