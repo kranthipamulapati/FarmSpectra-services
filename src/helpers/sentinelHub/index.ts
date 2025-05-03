@@ -64,8 +64,8 @@ const getSHS2FirstVisitDate = async (taskedFarm: FarmSatelliteTaskMetadata) => {
 
         const response = await axios.post(shCatalogUrl, searchParams, {
             headers: {
-                "Content-Type": "application/json",
                 Authorization: "Bearer " + token,
+                "Content-Type": "application/json",
             },
         });
 

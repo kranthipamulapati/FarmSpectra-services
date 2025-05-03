@@ -24,7 +24,6 @@ const getCopernicusAccessToken = async () => {
         const response = await axios({
             method: "POST",
             url: copernicusAuthUrl,
-            baseURL: copernicusBaseUrl,
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
@@ -72,8 +71,8 @@ const getCopernicusS2FirstVisitDate = async (
 
         const response = await axios.post(copernicusCatalogUrl, searchParams, {
             headers: {
-                "Content-Type": "application/json",
                 Authorization: "Bearer " + token,
+                "Content-Type": "application/json",
             },
         });
 
@@ -109,11 +108,12 @@ const getCopernicusS2FarmVisitData = async ({
     coordinates: Array<Coordinate>;
 }) => {
     try {
-        const transformedCoordinates = convertCoordsToPolygon(coordinates);
         const { height, width } = getHeightAndWidthInPixels({
             bbox,
             resolution: 10,
         });
+
+        const transformedCoordinates = convertCoordsToPolygon(coordinates);
 
         const request = {
             input: {
