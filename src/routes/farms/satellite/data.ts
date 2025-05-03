@@ -76,50 +76,65 @@ dataRouter.get(
                 first_visit_date: taskedFarm.first_visit_date,
             });
 
-            if (dates.length > 0) {
-                const token = await getSHAccessToken();
+            const existingVisits = await pocketbase
+                .collection("farm_satellite_visit_data")
+                .getFullList({
+                    fields: "visit_date",
+                    filter: `farm_fk="${farm_fk}" && satellite_fk="${satellite_fk}"`,
+                });
 
-                for (let i = 0; i < dates.length; i++) {
-                    const { endTime, startTime } = getUTCRange(
-                        new Date(dates[i])
-                    );
+            // Convert existing visit dates into a Set of ISO date strings
+            const existingDatesSet = new Set(
+                existingVisits.map((visit) => visit.visit_date.split("T")[0])
+            );
 
-                    let res = {
-                        data: "",
-                    };
-                    const date = startTime.split("T")[0];
+            if (dates.length === 0) {
+                return { message: `No visit dates available for task ${id}.` };
+            }
 
-                    if (collection_code === "sentinel-2-l2a") {
-                        res = await getSHS2FarmVisitData({
-                            bbox,
-                            token,
-                            endTime,
-                            startTime,
-                            coordinates,
-                        });
-                    } else if (collection_code === "planet-scope") {
-                        res = await getSHPlanetScopeFarmVisitData({
-                            bbox,
-                            token,
-                            endTime,
-                            startTime,
-                            coordinates,
-                        });
-                    }
+            const token = await getSHAccessToken();
 
-                    const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
+            for (let i = 0; i < dates.length; i++) {
+                const date = dates[i];
 
-                    await Bun.write(path, res.data);
+                if (existingDatesSet.has(date)) continue;
 
-                    await pocketbase
-                        .collection("farm_satellite_visit_data")
-                        .create({
-                            farm_fk,
-                            satellite_fk,
-                            visit_date: startTime,
-                            tiff_path: `${imagesURL}/${farm_fk}/${date}/${code}/tiff.tif`,
-                        });
+                const { endTime, startTime } = getUTCRange(new Date(date));
+
+                let res = {
+                    data: "",
+                };
+
+                if (collection_code === "sentinel-2-l2a") {
+                    res = await getSHS2FarmVisitData({
+                        bbox,
+                        token,
+                        endTime,
+                        startTime,
+                        coordinates,
+                    });
+                } else if (collection_code === "planet-scope") {
+                    res = await getSHPlanetScopeFarmVisitData({
+                        bbox,
+                        token,
+                        endTime,
+                        startTime,
+                        coordinates,
+                    });
                 }
+
+                const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
+
+                await Bun.write(path, res.data);
+
+                await pocketbase
+                    .collection("farm_satellite_visit_data")
+                    .create({
+                        farm_fk,
+                        satellite_fk,
+                        visit_date: startTime,
+                        tiff_path: `${imagesURL}/${farm_fk}/${date}/${code}/tiff.tif`,
+                    });
             }
 
             return {
