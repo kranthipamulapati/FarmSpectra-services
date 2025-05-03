@@ -1,8 +1,8 @@
 import area from "@turf/area";
 import { t, Elysia } from "elysia";
 import { polygon } from "@turf/helpers";
-import { bbox, booleanValid } from "@turf/turf";
 import { ClientResponseError } from "pocketbase";
+import { bbox, kinks, booleanValid } from "@turf/turf";
 
 import { type Farm, pocketbase, loginToDatabase } from "../../database";
 
@@ -36,11 +36,19 @@ farmsRouter.post(
                 throw new Error("Invalid coordinate bounds.");
             }
 
-            // Turf-based validations & Self-intersection check
+            // Turf-based validations
             const turfPoly = polygon([coordinates]);
             const isValid = booleanValid(turfPoly);
 
+            // Detect kinks (self-intersections)
+            const intersections = kinks(turfPoly);
+
             if (!isValid) {
+                throw new Error("Polygon is invalid.");
+            }
+
+            // Check if any kinks were found
+            if (intersections.features.length > 0) {
                 throw new Error("Polygon is self-intersecting.");
             }
 
