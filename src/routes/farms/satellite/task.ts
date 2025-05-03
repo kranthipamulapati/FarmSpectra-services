@@ -19,7 +19,11 @@ taskRouter.post(
         try {
             const { id, farm_fk, satellite_fk, start_date, end_date } = body;
 
-            if (normalizeDate(start_date) > normalizeDate(end_date)) {
+            const newStart = normalizeDate(new Date(start_date));
+            const newEnd = normalizeDate(new Date(end_date));
+            const today = normalizeDate(new Date());
+
+            if (newStart > newEnd) {
                 throw new Error(
                     "Start date must be before or equal to end date."
                 );
@@ -35,20 +39,42 @@ taskRouter.post(
                     filter: `farm_fk = '${farm_fk}' && satellite_fk = '${satellite_fk}'`,
                 });
 
+            if (id) {
+                // On update, fetch the existing task to compare
+                const existingTask = tasks.find((task) => task.id === id);
+
+                if (!existingTask) {
+                    throw new Error("Task to update not found.");
+                }
+
+                const existingStart = normalizeDate(
+                    new Date(existingTask.start_date)
+                );
+
+                if (newStart > existingStart) {
+                    throw new Error(
+                        `Start date cannot be after the existing start date (${existingStart.toDateString()}).`
+                    );
+                }
+            }
+
+            // Rule 2: End date must not be before today
+            if (newEnd < today) {
+                throw new Error("End date cannot be earlier than today.");
+            }
+
             for (const task of tasks) {
                 if (id && task.id === id) continue; // skip the same record
 
                 const existingStart = normalizeDate(new Date(task.start_date));
                 const existingEnd = normalizeDate(new Date(task.end_date));
-                const newStart = normalizeDate(new Date(start_date));
-                const newEnd = normalizeDate(new Date(end_date));
 
                 const overlap =
                     newStart <= existingEnd && newEnd >= existingStart;
 
                 if (overlap) {
                     throw new Error(
-                        `Overlapping task detected with existing event from ${existingStart.toISOString()} to ${existingEnd.toISOString()}`
+                        `Overlapping task exists from ${existingStart.toISOString()} to ${existingEnd.toISOString()}`
                     );
                 }
             }
