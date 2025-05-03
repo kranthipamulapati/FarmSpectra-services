@@ -1,7 +1,19 @@
 import sharp from "sharp";
-import { bbox } from "@turf/turf";
+import nodemailer from "nodemailer";
 
 import type { Coordinate } from "./database";
+
+import { awsSmtpPassword, awsSmtpUsername } from "./constants";
+
+const emailCLient = nodemailer.createTransport({
+    host: "email-smtp.us-east-1.amazonaws.com",
+    port: 465,
+    secure: true,
+    auth: {
+        user: awsSmtpUsername,
+        pass: awsSmtpPassword,
+    },
+});
 
 const getUTCDate = (date: Date) => {
     return new Date(
@@ -149,6 +161,7 @@ function calculateAverage(arr: Float32Array) {
 export {
     getUTCDate,
     getUTCRange,
+    emailCLient,
     calculateAverage,
     generateColorMapImage,
     convertCoordsToPolygon,

@@ -11,6 +11,9 @@ const publicFolder = process.env.Public_Folder;
 const databaseUsername = process.env.Database_Admin_Username;
 const databasePassword = process.env.Database_Admin_Password;
 
+const awsSmtpUsername = process.env.AWS_SMTP_Username;
+const awsSmtpPassword = process.env.AWS_SMTP_Password;
+
 const copernicusBaseUrl = "https://sh.dataspace.copernicus.eu";
 const copernicusProcessUrl =
     "https://sh.dataspace.copernicus.eu/api/v1/process";
@@ -137,4 +140,6 @@ export {
     copernicus_client_secret,
     sentinel_2_l2a_evalScript,
     planet_scope_evalScript,
+    awsSmtpUsername,
+    awsSmtpPassword,
 };
