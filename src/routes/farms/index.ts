@@ -122,13 +122,17 @@ farmsRouter.post(
     "/update/validate",
     async ({ set, body }) => {
         try {
-            const { id, coordinates } = body;
+            const { id, user_fk, coordinates } = body;
 
             if (pocketbase.authStore.isValid === false) {
                 await loginToDatabase();
             }
 
             const farm = await pocketbase.collection("farms").getOne<Farm>(id);
+
+            if (user_fk !== farm.user_fk) {
+                throw new Error("User cannot be changed.");
+            }
 
             const areCoordinatesEqual =
                 farm.coordinates.length === coordinates.length &&
@@ -195,6 +199,7 @@ farmsRouter.post(
     {
         body: t.Object({
             id: t.String(),
+            user_fk: t.String(),
             coordinates: t.Array(
                 t.Object({
                     lat: t.Number(),
