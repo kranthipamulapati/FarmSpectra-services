@@ -7,7 +7,7 @@ import {
     type FarmSatelliteTaskMetadata,
 } from "../../../database";
 
-import { getUTCRange } from "../../../utils";
+import { getUTCRange, sendErrorMail } from "../../../utils";
 
 import {
     getSHAccessToken,
@@ -128,22 +128,26 @@ dataRouter.get(
         } catch (error) {
             set.status = 400;
 
+            let errorMessage = "An unknown error occurred";
+
             if (error instanceof ClientResponseError) {
                 const { data, message } = error.response;
 
-                const errorMessages = Object.entries(data || {})
+                const errorDetails = Object.entries(data || {})
                     .map(
                         ([field, err]: [string, any]) =>
                             `${field}: ${err.message}`
                     )
                     .join("\n");
 
-                return `${message}\n${errorMessages}`;
+                errorMessage = `${message}\n${errorDetails}`;
             } else if (error instanceof Error) {
-                return error.message;
-            } else {
-                return "An unknown error occurred";
+                errorMessage = error.message;
             }
+
+            await sendErrorMail("getPrevious", errorMessage);
+
+            return errorMessage;
         }
     },
     {

@@ -7,6 +7,8 @@ import {
     type FarmSatelliteVisitDataExpand,
 } from "../../../database";
 
+import { sendErrorMail } from "../../../utils";
+
 import { processPSTiff, processS2Tiff } from "../../../helpers";
 
 const processRouter = new Elysia({ prefix: "/farms/satellite/process" });
@@ -47,22 +49,26 @@ processRouter.get(
         } catch (error: unknown) {
             set.status = 400;
 
+            let errorMessage = "An unknown error occurred";
+
             if (error instanceof ClientResponseError) {
                 const { data, message } = error.response;
 
-                const errorMessages = Object.entries(data || {})
+                const errorDetails = Object.entries(data || {})
                     .map(
                         ([field, err]: [string, any]) =>
                             `${field}: ${err.message}`
                     )
                     .join("\n");
 
-                return `${message}\n${errorMessages}`;
+                errorMessage = `${message}\n${errorDetails}`;
             } else if (error instanceof Error) {
-                return error.message;
-            } else {
-                return "An unknown error occurred";
+                errorMessage = error.message;
             }
+
+            await sendErrorMail("indices", errorMessage);
+
+            return errorMessage;
         }
     },
     {
