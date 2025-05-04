@@ -1,5 +1,6 @@
 import { t, Elysia } from "elysia";
 import { ClientResponseError } from "pocketbase";
+import { fromFile, type TypedArray } from "geotiff";
 
 import {
     pocketbase,
@@ -197,10 +198,44 @@ dataRouter.post(
             const datetime = getUTCDate(visit_date);
             const date = datetime.split("T")[0];
 
-            const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
+            const tiff = await fromFile(
+                `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`
+            );
+            const image = await tiff.getImage();
+            const rasters = await image.readRasters();
+
+            const width = image.getWidth();
+            const height = image.getHeight();
+
+            const blueBand = rasters[0] as TypedArray; // B02
+            const greenBand = rasters[1] as TypedArray; // B03
+            const redBand = rasters[2] as TypedArray; // B04
+            const redEdgeBand = rasters[3] as TypedArray; // B05
+            const nirBand = rasters[4] as TypedArray; // B08
+            const swirBand = rasters[5] as TypedArray; // B11
+
+            const data: {
+                [key: string]: Float32Array<ArrayBuffer>;
+            } = { NDVI: new Float32Array(width * height) };
+
+            for (let i = 0; i < height * width; i++) {
+                const red = redBand[i];
+                const nir = nirBand[i];
+                const blue = blueBand[i];
+                const green = greenBand[i];
+                const swir = swirBand[i];
+                const redEdge = redEdgeBand[i];
+
+                if (data.NDVI) {
+                    const denominator = nir + red;
+
+                    data.NDVI[i] =
+                        denominator === 0 ? 0 : (nir - red) / denominator;
+                }
+            }
 
             return {
-                message: path,
+                data,
             };
         } catch (error) {
             set.status = 400;
