@@ -5,9 +5,8 @@ import {
     pocketbase,
     loginToDatabase,
     type FarmSatelliteTaskMetadata,
+    type FarmSatelliteVisitDataExpand,
 } from "../../../database";
-
-import { getUTCRange, sendErrorMail } from "../../../utils";
 
 import {
     getSHAccessToken,
@@ -18,6 +17,8 @@ import {
 import { getSatelliteVisitDates } from "../../../helpers";
 
 import { imagesURL, publicFolder } from "../../../constants";
+
+import { getUTCDate, getUTCRange, sendErrorMail } from "../../../utils";
 
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 
@@ -170,6 +171,66 @@ dataRouter.get(
     {
         params: t.Object({
             id: t.String(),
+        }),
+    }
+);
+
+dataRouter.post(
+    "/index",
+    async ({ set, body }) => {
+        try {
+            const { farm_fk, index_fk, satellite_fk, visit_date } = body;
+
+            if (pocketbase.authStore.isValid === false) {
+                await loginToDatabase();
+            }
+
+            const farms = await pocketbase
+                .collection("farm_satellite_visit_data")
+                .getFullList<FarmSatelliteVisitDataExpand>({
+                    expand: "farm_fk, satellite_fk",
+                    filter: `farm_fk = '${farm_fk}' && satellite_fk = '${satellite_fk}'`,
+                });
+
+            const { code } = farms[0].expand.satellite_fk;
+
+            const datetime = getUTCDate(visit_date);
+            const date = datetime.split("T")[0];
+
+            const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
+
+            return {
+                message: path,
+            };
+        } catch (error) {
+            set.status = 400;
+
+            let errorMessage = "An unknown error occurred";
+
+            if (error instanceof ClientResponseError) {
+                const { data, message } = error.response;
+
+                const errorDetails = Object.entries(data || {})
+                    .map(
+                        ([field, err]: [string, any]) =>
+                            `${field}: ${err.message}`
+                    )
+                    .join("\n");
+
+                errorMessage = `${message}\n${errorDetails}`;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            return errorMessage;
+        }
+    },
+    {
+        body: t.Object({
+            farm_fk: t.String(),
+            index_fk: t.String(),
+            visit_date: t.Date(),
+            satellite_fk: t.String(),
         }),
     }
 );

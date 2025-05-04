@@ -7,11 +7,9 @@ import {
     type FarmSatelliteTask,
 } from "../../../database";
 
-const taskRouter = new Elysia({ prefix: "/farms/satellite/task" });
+import { normalizeDate } from "../../../utils";
 
-function normalizeDate(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
+const taskRouter = new Elysia({ prefix: "/farms/satellite/task" });
 
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
 

@@ -7,13 +7,11 @@ import {
     type FarmCalendar,
 } from "../../../database";
 
+import { normalizeDate } from "../../../utils";
+
 const calendarRouter = new Elysia({ prefix: "/farms/calendar" });
 
 const formatDate = (d: Date) => d.toISOString().split("T")[0];
-
-function normalizeDate(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
 
 // farm_fk needs to be checked before getting other calenders as farm_fk might contain other farms id when user is trying to change farm itself
 

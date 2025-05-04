@@ -180,10 +180,15 @@ const sendErrorMail = async (message: string, errorMessages: string) => {
     }
 };
 
+function normalizeDate(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
 export {
     getUTCDate,
     getUTCRange,
     sendErrorMail,
+    normalizeDate,
     calculateAverage,
     generateColorMapImage,
     convertCoordsToPolygon,

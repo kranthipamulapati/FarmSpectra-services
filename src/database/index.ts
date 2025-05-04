@@ -180,10 +180,11 @@ export type {
     FarmSatelliteTask,
     SatelliteIndexExpand,
     FarmSatelliteMetadata,
+    FarmSatelliteVisitData,
     FarmSatelliteIndexImage,
     FarmSatelliteTaskExpand,
-    FarmSatelliteVisitDataExpand,
     FarmSatelliteTaskMetadata,
     FarmSatelliteMetadataExpand,
+    FarmSatelliteVisitDataExpand,
 };
 export { pocketbase, loginToDatabase };
