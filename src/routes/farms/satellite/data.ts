@@ -204,6 +204,9 @@ dataRouter.post(
             const image = await tiff.getImage();
             const rasters = await image.readRasters();
 
+            const tiepoint = image.getTiePoints()[0]; // usually one
+            const [scaleX, scaleY] = image.getFileDirectory().ModelPixelScale;
+
             const width = image.getWidth();
             const height = image.getHeight();
 
@@ -236,6 +239,14 @@ dataRouter.post(
 
             return {
                 data,
+                width,
+                height,
+                geoTransform: {
+                    scaleX,
+                    scaleY,
+                    originX: tiepoint.x,
+                    originY: tiepoint.y,
+                },
             };
         } catch (error) {
             set.status = 400;
