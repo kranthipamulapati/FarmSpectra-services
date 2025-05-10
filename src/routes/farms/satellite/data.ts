@@ -9,17 +9,17 @@ import {
     type FarmSatelliteVisitDataExpand,
 } from "../../../database";
 
-import {
-    getSHAccessToken,
-    getSHS2FarmVisitData,
-    getSHS2FirstVisitDate,
-    getSHPlanetScopeFarmVisitData,
-} from "../../../helpers/sentinelHub";
-import { getSatelliteVisitDates } from "../../../helpers";
-
 import { imagesURL, publicFolder } from "../../../constants";
 
 import { getUTCDate, getUTCRange, sendErrorMail } from "../../../utils";
+
+import {
+    getCopernicusAccessToken,
+    getCopernicusS2FarmVisitData,
+    getCopernicusS2FirstVisitDate,
+} from "../../../helpers/copernicus";
+import { getSatelliteVisitDates } from "../../../helpers";
+import { getSHPlanetScopeFarmVisitData } from "../../../helpers/sentinelHub";
 
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 
@@ -59,9 +59,8 @@ dataRouter.get(
             // check if first_visit_date exists, if not, get
             if (taskedFarm.first_visit_date === "") {
                 if (collection_code === "sentinel-2-l2a") {
-                    taskedFarm.first_visit_date = await getSHS2FirstVisitDate(
-                        taskedFarm
-                    );
+                    taskedFarm.first_visit_date =
+                        await getCopernicusS2FirstVisitDate(taskedFarm);
 
                     await pocketbase
                         .collection("farm_satellite_metadata")
@@ -96,7 +95,7 @@ dataRouter.get(
                 return { message: `No visit dates available for task ${id}.` };
             }
 
-            const token = await getSHAccessToken();
+            const token = await getCopernicusAccessToken();
 
             for (let i = 0; i < dates.length; i++) {
                 const date = dates[i];
@@ -110,7 +109,7 @@ dataRouter.get(
                 };
 
                 if (collection_code === "sentinel-2-l2a") {
-                    res = await getSHS2FarmVisitData({
+                    res = await getCopernicusS2FarmVisitData({
                         bbox,
                         token,
                         endTime,

@@ -12,10 +12,10 @@ import { getUTCRange, sendErrorMail } from "../utils";
 import { imagesURL, publicFolder } from "../constants";
 
 import {
-    getSHAccessToken,
-    getSHS2FarmVisitData,
-    getSHS2FirstVisitDate,
-} from "../helpers/sentinelHub";
+    getCopernicusAccessToken,
+    getCopernicusS2FarmVisitData,
+    getCopernicusS2FirstVisitDate,
+} from "../helpers/copernicus";
 
 const getFarmsSatelliteDataCron = cron({
     name: "getFarmsSatelliteData",
@@ -31,7 +31,7 @@ const getFarmsSatelliteDataCron = cron({
                 .getFullList<FarmSatelliteTaskMetadata>();
 
             if (taskedFarms.length) {
-                const token = await getSHAccessToken();
+                const token = await getCopernicusAccessToken();
 
                 for (let i = 0; i < taskedFarms.length; i++) {
                     const taskedFarm = taskedFarms[i];
@@ -52,7 +52,7 @@ const getFarmsSatelliteDataCron = cron({
                     if (taskedFarm.first_visit_date === "") {
                         if (collection_code === "sentinel-2-l2a") {
                             taskedFarm.first_visit_date =
-                                await getSHS2FirstVisitDate(taskedFarm);
+                                await getCopernicusS2FirstVisitDate(taskedFarm);
 
                             await pocketbase
                                 .collection("farm_satellite_metadata")
@@ -89,13 +89,15 @@ const getFarmsSatelliteDataCron = cron({
 
                             const date = startTime.split("T")[0];
 
-                            const { data } = await getSHS2FarmVisitData({
-                                bbox,
-                                token,
-                                endTime,
-                                startTime,
-                                coordinates,
-                            });
+                            const { data } = await getCopernicusS2FarmVisitData(
+                                {
+                                    bbox,
+                                    token,
+                                    endTime,
+                                    startTime,
+                                    coordinates,
+                                }
+                            );
 
                             const path = `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`;
 
