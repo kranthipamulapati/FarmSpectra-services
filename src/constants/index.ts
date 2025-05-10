@@ -92,8 +92,10 @@ const planet_scope_evalScript = `
                     "green",
                     "rededge",
                     "nir",
+                    "cloud",
                 ],
                 units: [
+                    "DN",
                     "DN",
                     "DN",
                     "DN",
@@ -102,7 +104,7 @@ const planet_scope_evalScript = `
                 ]
             }],
             output: { 
-                bands: 5,  
+                bands: 6,
                 id: "default",
                 sampleType: SampleType.FLOAT32 
             },
@@ -117,6 +119,7 @@ const planet_scope_evalScript = `
             sample.green,
             sample.rededge,
             sample.nir,
+            sample.cloud,
         ];
     }
 `;

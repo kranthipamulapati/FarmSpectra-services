@@ -199,14 +199,14 @@ const getSHPlanetScopeFarmVisitData = async ({
                 },
                 data: [
                     {
+                        itemType: "PSScene",
+                        harmonizeTo: "NONE",
+                        productBundle: "analytic_8b_sr_udm2",
                         dataFilter: {
                             timeRange: {
                                 to: endTime,
                                 from: startTime,
                             },
-                        },
-                        processing: {
-                            harmonizeValues: false,
                         },
                         type: "BYOC-28eef896-9632-4546-a99e-cea34d74b21e",
                     },

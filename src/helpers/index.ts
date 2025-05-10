@@ -342,6 +342,7 @@ const processPSTiff = async (
             const greenBand = rasters[2] as TypedArray; // green
             const redEdgeBand = rasters[3] as TypedArray; // red edge
             const nirBand = rasters[4] as TypedArray; // near infra red
+            const cloudBand = rasters[5] as TypedArray; // cloud
 
             const data: {
                 [key: string]: Float32Array<ArrayBuffer>;
@@ -480,6 +481,18 @@ const processPSTiff = async (
                 }
             }
 
+            let cloudPixels = 0;
+            const totalPixels = width * height;
+
+            for (let i = 0; i < totalPixels; i++) {
+                // Assume cloudBand values are either 0 (clear) or 1 (cloudy)
+                if (cloudBand[i] >= 1) {
+                    cloudPixels++;
+                }
+            }
+
+            const cloudCover = (cloudPixels / totalPixels) * 100;
+
             const basePath = `${publicFolder}/images/${farm_fk}/${date}/${code}`;
 
             await Promise.all(
@@ -509,8 +522,8 @@ const processPSTiff = async (
             await pocketbase
                 .collection("farm_satellite_visit_data")
                 .update(id, {
-                    cloud_cover: 0,
                     processed: true,
+                    cloud_cover: cloudCover,
                 });
 
             return "success";
