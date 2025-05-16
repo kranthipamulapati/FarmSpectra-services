@@ -5,6 +5,7 @@ import { fromFile, type TypedArray } from "geotiff";
 import {
     pocketbase,
     loginToDatabase,
+    type SatelliteIndex,
     type FarmSatelliteTaskMetadata,
 } from "../../../database";
 
@@ -183,7 +184,7 @@ dataRouter.post(
     "/image",
     async ({ set, body }) => {
         try {
-            const { farm_fk, visit_date, satellite_code } = body;
+            const { farm_fk, visit_date, index_code, satellite_code } = body;
 
             if (pocketbase.authStore.isValid === false) {
                 await loginToDatabase();
@@ -198,6 +199,12 @@ dataRouter.post(
 
             const image = await tiff.getImage();
             const rasters = await image.readRasters();
+
+            const satelliteIndices = await pocketbase
+                .collection("satellite_indices")
+                .getFullList<SatelliteIndex>({
+                    filter: `index_fk.code = '${index_code}' && satellite_fk.code = '${satellite_code}'`,
+                });
 
             const tiePoint = image.getTiePoints()[0]; // usually one
             const [scaleX, scaleY] = image.getFileDirectory().ModelPixelScale;
@@ -215,8 +222,8 @@ dataRouter.post(
             const nirBand = rasters[4] as TypedArray; // B08
             const swirBand = rasters[5] as TypedArray; // B11
 
-            const ndviArray = new Float32Array(width * height);
             const columns: ColumnPoint[] = [];
+            const ndviArray = new Float32Array(width * height);
 
             for (let row = 0; row < height; row++) {
                 for (let col = 0; col < width; col++) {
@@ -239,8 +246,8 @@ dataRouter.post(
                     const lat = originY - row * scaleY; // invert Y for geographic space
 
                     columns.push({
-                        position: [lng, lat],
                         value: ndvi,
+                        position: [lng, lat],
                     });
                 }
             }
@@ -249,6 +256,7 @@ dataRouter.post(
                 width,
                 height,
                 columns,
+                color_matrix: satelliteIndices[0].color_matrix,
             };
         } catch (error) {
             set.status = 400;
