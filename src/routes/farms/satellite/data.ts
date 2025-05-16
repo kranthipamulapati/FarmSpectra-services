@@ -22,6 +22,11 @@ import { getSHPlanetScopeFarmVisitData } from "../../../helpers/sentinelHub";
 
 const dataRouter = new Elysia({ prefix: "/farms/satellite/data" });
 
+type ColumnPoint = {
+    value: number; // NDVI value
+    position: [number, number]; // [lng, lat]
+};
+
 // get previous days data when ever a farm is assigned a satellite for tasking
 // for example is farm is tasked from Mar 1st to May 31st & todays date is April 15th, then get data from March 1st to April 14th
 // metadata includes first_visit_date, so if first_visit_date is empty, it has to be skipped
@@ -190,11 +195,15 @@ dataRouter.post(
             const tiff = await fromFile(
                 `${publicFolder}/images/${farm_fk}/${date}/${satellite_code}/tiff.tif`
             );
+
             const image = await tiff.getImage();
             const rasters = await image.readRasters();
 
             const tiePoint = image.getTiePoints()[0]; // usually one
             const [scaleX, scaleY] = image.getFileDirectory().ModelPixelScale;
+
+            const originX = tiePoint.x;
+            const originY = tiePoint.y;
 
             const width = image.getWidth();
             const height = image.getHeight();
@@ -206,36 +215,40 @@ dataRouter.post(
             const nirBand = rasters[4] as TypedArray; // B08
             const swirBand = rasters[5] as TypedArray; // B11
 
-            const data: {
-                [key: string]: Float32Array<ArrayBuffer>;
-            } = { NDVI: new Float32Array(width * height) };
+            const ndviArray = new Float32Array(width * height);
+            const columns: ColumnPoint[] = [];
 
-            for (let i = 0; i < height * width; i++) {
-                const red = redBand[i];
-                const nir = nirBand[i];
-                const blue = blueBand[i];
-                const green = greenBand[i];
-                const swir = swirBand[i];
-                const redEdge = redEdgeBand[i];
+            for (let row = 0; row < height; row++) {
+                for (let col = 0; col < width; col++) {
+                    const i = row * width + col;
 
-                if (data.NDVI) {
+                    const red = redBand[i];
+                    const nir = nirBand[i];
+
                     const denominator = nir + red;
-
-                    data.NDVI[i] =
+                    const ndvi =
                         denominator === 0 ? 0 : (nir - red) / denominator;
+
+                    ndviArray[i] = ndvi;
+
+                    // Filter out invalid or no-data values
+                    if (!Number.isFinite(ndvi) || ndvi < -1 || ndvi > 1)
+                        continue;
+
+                    const lng = originX + col * scaleX;
+                    const lat = originY - row * scaleY; // invert Y for geographic space
+
+                    columns.push({
+                        position: [lng, lat],
+                        value: ndvi,
+                    });
                 }
             }
 
             return {
-                data,
                 width,
                 height,
-                geoTransform: {
-                    scaleX,
-                    scaleY,
-                    originX: tiePoint.x,
-                    originY: tiePoint.y,
-                },
+                columns,
             };
         } catch (error) {
             set.status = 400;
