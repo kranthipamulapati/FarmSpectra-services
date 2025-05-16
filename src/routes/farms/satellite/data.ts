@@ -6,7 +6,6 @@ import {
     pocketbase,
     loginToDatabase,
     type FarmSatelliteTaskMetadata,
-    type FarmSatelliteVisitDataExpand,
 } from "../../../database";
 
 import { imagesURL, publicFolder } from "../../../constants";
@@ -176,34 +175,25 @@ dataRouter.get(
 );
 
 dataRouter.post(
-    "/index",
+    "/image",
     async ({ set, body }) => {
         try {
-            const { farm_fk, index_fk, satellite_fk, visit_date } = body;
+            const { farm_fk, visit_date, satellite_code } = body;
 
             if (pocketbase.authStore.isValid === false) {
                 await loginToDatabase();
             }
 
-            const farms = await pocketbase
-                .collection("farm_satellite_visit_data")
-                .getFullList<FarmSatelliteVisitDataExpand>({
-                    expand: "farm_fk, satellite_fk",
-                    filter: `farm_fk = '${farm_fk}' && satellite_fk = '${satellite_fk}'`,
-                });
-
-            const { code } = farms[0].expand.satellite_fk;
-
             const datetime = getUTCDate(visit_date);
             const date = datetime.split("T")[0];
 
             const tiff = await fromFile(
-                `${publicFolder}/images/${farm_fk}/${date}/${code}/tiff.tif`
+                `${publicFolder}/images/${farm_fk}/${date}/${satellite_code}/tiff.tif`
             );
             const image = await tiff.getImage();
             const rasters = await image.readRasters();
 
-            const tiepoint = image.getTiePoints()[0]; // usually one
+            const tiePoint = image.getTiePoints()[0]; // usually one
             const [scaleX, scaleY] = image.getFileDirectory().ModelPixelScale;
 
             const width = image.getWidth();
@@ -243,8 +233,8 @@ dataRouter.post(
                 geoTransform: {
                     scaleX,
                     scaleY,
-                    originX: tiepoint.x,
-                    originY: tiepoint.y,
+                    originX: tiePoint.x,
+                    originY: tiePoint.y,
                 },
             };
         } catch (error) {
@@ -272,10 +262,11 @@ dataRouter.post(
     },
     {
         body: t.Object({
+            id: t.String(),
             farm_fk: t.String(),
-            index_fk: t.String(),
             visit_date: t.Date(),
-            satellite_fk: t.String(),
+            index_code: t.String(),
+            satellite_code: t.String(),
         }),
     }
 );
