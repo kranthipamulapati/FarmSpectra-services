@@ -215,12 +215,27 @@ dataRouter.post(
             const width = image.getWidth();
             const height = image.getHeight();
 
-            const blueBand = rasters[0] as TypedArray; // B02
-            const greenBand = rasters[1] as TypedArray; // B03
-            const redBand = rasters[2] as TypedArray; // B04
-            const redEdgeBand = rasters[3] as TypedArray; // B05
-            const nirBand = rasters[4] as TypedArray; // B08
-            const swirBand = rasters[5] as TypedArray; // B11
+            let blueBand: any = null;
+            let greenBand: any = null;
+            let redBand: any = null;
+            let redEdgeBand: any = null;
+            let nirBand: any = null;
+            let swirBand: any = null;
+
+            if (satellite_code === "s2") {
+                blueBand = rasters[0] as TypedArray; // B02
+                greenBand = rasters[1] as TypedArray; // B03
+                redBand = rasters[2] as TypedArray; // B04
+                redEdgeBand = rasters[3] as TypedArray; // B05
+                nirBand = rasters[4] as TypedArray; // B08
+                swirBand = rasters[5] as TypedArray; // B11
+            } else if (satellite_code === "ps") {
+                redBand = rasters[0] as TypedArray; // red
+                blueBand = rasters[1] as TypedArray; // blue
+                greenBand = rasters[2] as TypedArray; // green
+                redEdgeBand = rasters[3] as TypedArray; // red edge
+                nirBand = rasters[4] as TypedArray; // near infra red
+            }
 
             const columns: ColumnPoint[] = [];
             const ndviArray = new Float32Array(width * height);
