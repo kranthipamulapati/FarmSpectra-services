@@ -253,10 +253,6 @@ dataRouter.post(
 
                     ndviArray[i] = ndvi;
 
-                    // Filter out invalid or no-data values
-                    if (!Number.isFinite(ndvi) || ndvi < -1 || ndvi > 1)
-                        continue;
-
                     const lng = originX + col * scaleX;
                     const lat = originY - row * scaleY; // invert Y for geographic space
 
