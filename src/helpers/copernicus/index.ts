@@ -2,7 +2,6 @@ import axios from "axios";
 
 import {
     copernicusAuthUrl,
-    copernicusBaseUrl,
     copernicusProcessUrl,
     copernicusCatalogUrl,
     copernicus_client_id,
